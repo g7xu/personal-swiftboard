@@ -1,0 +1,29 @@
+// Prisma schema file,
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Sprint {
+  id          String   @id @default(uuid())
+  weekStart   DateTime
+  theme       String?
+  status      String   @default("ACTIVE") // ACTIVE, COMPLETED
+  retroNotes  String?  // Markdown content
+  createdAt   DateTime @default(now())
+  tasks       Task[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  content     String
+  status      String   @default("Not Sure") // Throne, Rose, Seed, Action, Not Sure
+  color       String   @default("yellow") // For the sticky note look (yellow, blue, pink, green)
+  sprintId    String
+  sprint      Sprint   @relation(fields: [sprintId], references: [id])
+}
