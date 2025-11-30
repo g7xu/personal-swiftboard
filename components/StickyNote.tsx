@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
+import { updateTaskContent } from '@/app/actions'
 
 interface StickyNoteProps {
     task: {
@@ -48,7 +49,17 @@ function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
 export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging }: StickyNoteProps) {
     const dragRef = useRef<HTMLDivElement>(null)
 
+    const [isEditing, setIsEditing] = useState(false)
+    const [draftContent, setDraftContent] = useState(task.content)
+    const [isSaving, setIsSaving] = useState(false)
+
+    // handle drag and drop
     const handleDragStart = (e: React.DragEvent) => {
+        if (isEditing) {
+            e.preventDefault()
+            return
+        }
+        
         onDragStart(task.id)
         if (dragRef.current) {
             createDragImage(dragRef.current, e)
@@ -61,10 +72,38 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
         onDragEnd()
     }
 
+    // handle click edit
+    const handleClick = () => {
+        if (!isEditing && !isSaving) {
+            setIsEditing(true)
+            setDraftContent(task.content)
+        }
+    }
+
+    const handleSubmit = async () => {
+        const trimmedContent = draftContent.trim()
+
+        if (!trimmedContent || task.content === trimmedContent) {
+            setIsEditing(false)
+            return
+        }
+
+        setIsSaving(true)
+        try {
+            await updateTaskContent(task.id, trimmedContent)
+        } catch (error) {
+            console.log("Failed to edit the task:", error)
+        } finally {
+            setIsEditing(false)
+            setIsSaving(false)
+        }
+        
+    }
+
     return (
         <div
             ref={dragRef}
-            draggable
+            draggable={!isEditing}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             className={`
@@ -72,10 +111,31 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                 ${colorClasses[task.color] || colorClasses.yellow}
                 ${isDragging ? 'opacity-50' : 'hover:-rotate-1 transition-transform'}
                 text-gray-800 font-medium font-sans text-sm sm:text-base
-                min-h-[100px] flex items-center justify-center text-center
+                min-h-[100px] flex flex-col items-start justify-start text-left
             `}
         >
-            {task.content}
+            {isEditing ? (
+                <textarea
+                    value={draftContent}
+                    onChange={(e) => setDraftContent(e.target.value)}
+                    onBlur={handleSubmit}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            handleSubmit()
+                        } else if (e.key === 'Escape') {
+                            setIsEditing(true)
+                            setDraftContent(task.content)
+                        }
+                    }}
+                    autoFocus
+                    className="w-full h-full resize-none bg-transparent border-none outline-none text-gray-800 font-medium font-sans text-sm sm:text-base"
+                />
+            ) : (
+                <div onClick={handleClick} className='w-full h-full'>
+                    {task.content}
+                </div>
+            )}
         </div>
     )
 }
