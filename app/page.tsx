@@ -14,6 +14,15 @@ export default async function Home() {
       <PageAutoScroller currentDay={currentDay} />
 
       <div className="max-w-7xl mx-auto flex flex-col">
+        <header className="text-center py-8 px-6 sm:px-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+            Personal Swiftboard
+          </h1>
+          <p className="text-gray-500 text-lg">
+            Week of {new Date(sprint.weekStart).toLocaleDateString()} • {sprint.theme}
+          </p>
+        </header>
+        
         <section
           id="task-section"
           className="min-h-screen flex items-center px-6 sm:px-10 py-12"
@@ -26,15 +35,6 @@ export default async function Home() {
           className="min-h-screen px-6 sm:px-10 py-12 flex flex-col"
         >
           <div className="flex-1 flex flex-col">
-            <header className="mb-8 text-center">
-              <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
-                Personal Swiftboard
-              </h1>
-              <p className="text-gray-500 text-lg">
-                Week of {new Date(sprint.weekStart).toLocaleDateString()} • {sprint.theme}
-              </p>
-            </header>
-
             <div className="flex-1">
               <Board initialSprint={sprint} />
             </div>
