@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createTask, deleteTask } from '@/app/actions'
+import { createTask, deleteTask, updateTaskStatus } from '@/app/actions'
 import { Task, Sprint } from '@prisma/client'
 import CategorySelector, {Category} from './CategorySelector'
 import StickyNote from './StickyNote'
@@ -107,6 +107,7 @@ export default function TaskInputSection({ initialSprint }: TaskInputSectionProp
                                             onDragEnd={() => setDraggedTaskId(null)}
                                             isDragging={draggedTaskId === task.id}
                                             onDelete={(taskId) => deleteTask(taskId)}
+                                            onAssign={(taskId, status) => updateTaskStatus(taskId, status)}
                                         />
                                     ))}
                                 </div>
