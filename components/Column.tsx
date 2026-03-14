@@ -63,7 +63,7 @@ export default function Column({ id, title, tasks, onDragStart, onDragEnd, onDro
     }
 
     return (
-        <div className="flex flex-col w-full sm:w-1/4 min-w-[250px] bg-white rounded-[5px] p-4 border border-gray-100">
+        <div className="flex flex-col min-w-0 bg-white rounded-[5px] p-4 border border-gray-100">
             <h2 className="text-[22px] font-bold text-gray-800 mb-4 text-center border-b border-gray-100 pb-2">
                 {title}
             </h2>

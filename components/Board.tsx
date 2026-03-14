@@ -67,7 +67,7 @@ export default function Board({ initialSprint }: BoardProps) {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex flex-col sm:flex-row gap-5 overflow-x-auto pb-4 h-full">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 pb-4 h-full">
                 {COLUMNS.map((col) => (
                     <Column
                         key={col}
