@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Swiftboard
+
+A self-hosted personal productivity web application designed to replicate the clean, "sticky-note" aesthetic of SwiftBoard.io.
+
+## Features
+
+- **Sticky Note Interface**: Drag-and-drop tasks between columns.
+- **Weekly Sprints**: Focus on the current week.
+- **Dockerized**: Easy deployment with Docker Compose.
+- **Self-Hosted**: You own your data (PostgreSQL).
+- **Automated Backups**: Daily backups of your database.
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **Styling**: Tailwind CSS
+- **Containerization**: Docker & Docker Compose
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Docker and Docker Compose installed.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation & Running
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  Clone the repository (if you haven't already).
+2.  Run the application using Docker Compose:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    ```bash
+    docker-compose up -d
+    ```
 
-## Learn More
+3.  Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+### Local Development (Optional)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+If you want to run the app locally without Docker for the web service:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1.  Start the database container:
+    ```bash
+    docker-compose up -d db
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Generate Prisma Client:
+    ```bash
+    npx prisma generate
+    ```
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/`: Next.js App Router pages and API actions.
+- `components/`: React UI components (Board, Column, StickyNote).
+- `prisma/`: Database schema.
+- `lib/`: Shared utilities (Prisma client).
+- `docker-compose.yml`: Docker services definition.

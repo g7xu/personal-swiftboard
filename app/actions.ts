@@ -27,12 +27,12 @@ export async function getCurrentSprint() {
     return sprint
 }
 
-export async function createTask(content: string, sprintId: string) {
+export async function createTask(content: string, sprintId: string, category: string = 'Not Sure') {
     await prisma.task.create({
         data: {
             content,
             sprintId,
-            status: 'Throne', // Default column
+            status: category,
             color: 'yellow',
         },
     })

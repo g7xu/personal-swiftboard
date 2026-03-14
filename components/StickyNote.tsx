@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react'
 import { updateTaskContent } from '@/app/actions'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface StickyNoteProps {
     task: {
@@ -13,20 +14,21 @@ interface StickyNoteProps {
     onDragStart: (taskId: string) => void
     onDragEnd: () => void
     isDragging: boolean
+    onDelete?: (taskId: string) => void
 }
 
 const colorClasses: Record<string, string> = {
-    yellow: 'bg-yellow-200 hover:bg-yellow-100',
-    blue: 'bg-blue-200 hover:bg-blue-100',
-    pink: 'bg-pink-200 hover:bg-pink-100',
-    green: 'bg-green-200 hover:bg-green-100',
+    yellow: 'bg-yellow-100 hover:bg-yellow-50',
+    blue: 'bg-blue-100 hover:bg-blue-50',
+    pink: 'bg-pink-100 hover:bg-pink-50',
+    green: 'bg-green-100 hover:bg-green-50',
 }
 
 function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
     const rect = element.getBoundingClientRect()
     const offsetX = dragEvent.clientX - rect.left
     const offsetY = dragEvent.clientY - rect.top
-    
+
     // Create a custom drag image
     const dragImage = element.cloneNode(true) as HTMLElement
     dragImage.style.width = `${rect.width}px`
@@ -37,7 +39,7 @@ function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
 
     document.body.appendChild(dragImage)
     dragEvent.dataTransfer.setDragImage(dragImage, offsetX, offsetY)
-    
+
     // Clean up after a short delay
     setTimeout(() => {
         if (document.body.contains(dragImage)) {
@@ -46,7 +48,7 @@ function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
     }, 0)
 }
 
-export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging }: StickyNoteProps) {
+export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging, onDelete }: StickyNoteProps) {
     const dragRef = useRef<HTMLDivElement>(null)
 
     const [isEditing, setIsEditing] = useState(false)
@@ -59,7 +61,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
             e.preventDefault()
             return
         }
-        
+
         onDragStart(task.id)
         if (dragRef.current) {
             createDragImage(dragRef.current, e)
@@ -97,7 +99,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
             setIsEditing(false)
             setIsSaving(false)
         }
-        
+
     }
 
     return (
@@ -107,13 +109,42 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             className={`
-                p-4 mb-4 rounded shadow-md cursor-move
+                group relative
+                p-2 mb-4 rounded-[5px] shadow-swiftboard cursor-move
                 ${colorClasses[task.color] || colorClasses.yellow}
-                ${isDragging ? 'opacity-50' : 'hover:-rotate-1 transition-transform'}
-                text-gray-800 font-medium font-sans text-sm sm:text-base
-                min-h-[100px] flex flex-col items-start justify-start text-left
+                ${isDragging ? 'opacity-50' : 'hover:shadow-lg transition-shadow'}
+                text-gray-800 font-normal text-sm sm:text-base
+                min-h-[80px] flex flex-col items-start justify-start text-left
             `}
         >
+            {/* Edit/Delete icons - visible on hover */}
+            {!isEditing && (
+                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleClick()
+                        }}
+                        className="p-1 rounded hover:bg-black/10 transition-colors"
+                        title="Edit"
+                    >
+                        <Pencil size={14} className="text-gray-600" />
+                    </button>
+                    {onDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onDelete(task.id)
+                            }}
+                            className="p-1 rounded hover:bg-black/10 transition-colors"
+                            title="Delete"
+                        >
+                            <Trash2 size={14} className="text-gray-600" />
+                        </button>
+                    )}
+                </div>
+            )}
+
             {isEditing ? (
                 <textarea
                     value={draftContent}
@@ -124,15 +155,15 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                             e.preventDefault()
                             handleSubmit()
                         } else if (e.key === 'Escape') {
-                            setIsEditing(true)
+                            setIsEditing(false)
                             setDraftContent(task.content)
                         }
                     }}
                     autoFocus
-                    className="w-full h-full resize-none bg-transparent border-none outline-none text-gray-800 font-medium font-sans text-sm sm:text-base"
+                    className="w-full h-full resize-none bg-transparent border-none outline-none text-gray-800 font-normal text-sm sm:text-base"
                 />
             ) : (
-                <div onClick={handleClick} className='w-full h-full'>
+                <div className='w-full h-full'>
                     {task.content}
                 </div>
             )}

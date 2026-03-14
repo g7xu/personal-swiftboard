@@ -10,29 +10,29 @@ export default async function Home() {
   const currentDay = new Date().getDay()
 
   return (
-    <main className="bg-gray-50 font-[family-name:var(--font-geist-sans)]">
+    <main className="bg-white">
       <PageAutoScroller currentDay={currentDay} />
 
-      <div className="max-w-7xl mx-auto flex flex-col">
-        <header className="text-center py-8 px-6 sm:px-10">
-          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+      <div className="max-w-[1500px] w-[95%] mx-auto flex flex-col">
+        <header className="text-center py-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Personal Swiftboard
           </h1>
-          <p className="text-gray-500 text-lg">
+          <p className="text-gray-400 text-lg">
             Week of {new Date(sprint.weekStart).toLocaleDateString()} • {sprint.theme}
           </p>
         </header>
-        
+
         <section
           id="task-section"
-          className="min-h-screen flex items-center px-6 sm:px-10 py-12"
+          className="min-h-screen flex items-center py-[50px]"
         >
           <TaskInputSection initialSprint={sprint} />
         </section>
 
         <section
           id="board-section"
-          className="min-h-screen px-6 sm:px-10 py-12 flex flex-col"
+          className="min-h-screen py-[50px] flex flex-col"
         >
           <div className="flex-1 flex flex-col">
             <div className="flex-1">
