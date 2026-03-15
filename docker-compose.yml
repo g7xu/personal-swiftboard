@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: swiftboard
+      POSTGRES_PASSWORD: swiftboard
+      POSTGRES_DB: swiftboard
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
