@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Column from './Column'
-import { updateTaskStatus, createTask } from '@/app/actions'
+import { updateTaskStatus, createTask, deleteTask } from '@/app/actions'
 
 import { Task, Sprint } from '@prisma/client'
 
@@ -24,26 +24,37 @@ export default function Board({ initialSprint }: BoardProps) {
         setDraggedTaskId(null)
     }
 
-    const handleDrop = async (targetStatus: string) => {
-        if (!draggedTaskId) return
+    const handleDrop = async (targetStatus: string, taskId: string) => {
+        if (!taskId) return
 
-        const task = tasks.find(t => t.id === draggedTaskId)
-        if (!task || task.status === targetStatus) {
-            setDraggedTaskId(null)
-            return
+        const task = tasks.find(t => t.id === taskId)
+        if (task) {
+            // Task is in local state (board-to-board drag)
+            if (task.status === targetStatus) {
+                setDraggedTaskId(null)
+                return
+            }
+            // Optimistic update
+            const updatedTasks = tasks.map(t =>
+                t.id === taskId ? { ...t, status: targetStatus } : t
+            )
+            setTasks(updatedTasks)
         }
-
-        // Optimistic update
-        const updatedTasks = tasks.map(t =>
-            t.id === draggedTaskId ? { ...t, status: targetStatus } : t
-        )
-        setTasks(updatedTasks)
         setDraggedTaskId(null)
 
-        // Server action
-        await updateTaskStatus(draggedTaskId, targetStatus)
+        // Server action (handles both board-to-board and playground-to-board)
+        await updateTaskStatus(taskId, targetStatus)
     }
 
+    const handleDelete = async (taskId: string) => {
+        // Optimistic removal
+        setTasks(prev => prev.filter(t => t.id !== taskId))
+        await deleteTask(taskId)
+    }
+
+    const handleAddTask = async (content: string, status: string) => {
+        await createTask(content, initialSprint.id, status)
+    }
 
     // Sync state with props when they change (due to revalidation)
     useEffect(() => {
@@ -56,7 +67,7 @@ export default function Board({ initialSprint }: BoardProps) {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex flex-col sm:flex-row gap-6 overflow-x-auto pb-4 h-full">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 pb-4 h-full">
                 {COLUMNS.map((col) => (
                     <Column
                         key={col}
@@ -67,6 +78,8 @@ export default function Board({ initialSprint }: BoardProps) {
                         onDragEnd={handleDragEnd}
                         onDrop={handleDrop}
                         draggedTaskId={draggedTaskId}
+                        onDelete={handleDelete}
+                        onAddTask={handleAddTask}
                     />
                 ))}
             </div>
