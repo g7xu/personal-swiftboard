@@ -12,8 +12,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    signIn() {
-      return true
+    signIn({ user }) {
+      const allowedEmails = [
+        "guoxuan.xu8@gmail.com",
+        "1223348972@qq.com",
+        "zxh3145407090@gmail.com",
+      ]
+      return allowedEmails.includes(user.email ?? "")
     },
     session({ session, user }) {
       session.user.id = user.id
