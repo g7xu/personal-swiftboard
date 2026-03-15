@@ -16,6 +16,7 @@ interface StickyNoteProps {
     isDragging: boolean
     onDelete?: (taskId: string) => void
     onAssign?: (taskId: string, status: string) => void
+    readOnly?: boolean
 }
 
 const colorClasses: Record<string, string> = {
@@ -56,7 +57,7 @@ const assignButtons = [
     { status: 'Action', label: 'Action', color: 'bg-blue-200 hover:bg-blue-300' },
 ]
 
-export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging, onDelete, onAssign }: StickyNoteProps) {
+export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging, onDelete, onAssign, readOnly = false }: StickyNoteProps) {
     const dragRef = useRef<HTMLDivElement>(null)
 
     const [isEditing, setIsEditing] = useState(false)
@@ -138,13 +139,13 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
     return (
         <div
             ref={dragRef}
-            draggable={!isEditing}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onClick={handleClick}
+            draggable={!isEditing && !readOnly}
+            onDragStart={readOnly ? undefined : handleDragStart}
+            onDragEnd={readOnly ? undefined : handleDragEnd}
+            onClick={readOnly ? undefined : handleClick}
             className={`
                 group relative
-                p-2 mb-4 rounded-[5px] shadow-swiftboard cursor-move
+                p-2 mb-4 rounded-[5px] shadow-swiftboard ${readOnly ? 'cursor-default' : 'cursor-move'}
                 ${colorClasses[task.color] || colorClasses.yellow}
                 ${isDragging ? 'opacity-50' : 'hover:shadow-lg transition-shadow'}
                 text-gray-800 font-normal text-sm sm:text-base
@@ -152,7 +153,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
             `}
         >
             {/* Edit/Delete icons - visible on hover */}
-            {!isEditing && (
+            {!isEditing && !readOnly && (
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={(e) => {
