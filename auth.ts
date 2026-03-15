@@ -12,8 +12,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    signIn({ user }) {
-      return user.email === "guoxuan.xu8@gmail.com"
+    signIn() {
+      return true
     },
     session({ session, user }) {
       session.user.id = user.id
