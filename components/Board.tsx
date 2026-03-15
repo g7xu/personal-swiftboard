@@ -8,11 +8,12 @@ import { Task, Sprint } from '@prisma/client'
 
 interface BoardProps {
     initialSprint: Sprint & { tasks: Task[] }
+    readOnly?: boolean
 }
 
 const COLUMNS = ['Throne', 'Rose', 'Seed', 'Action']
 
-export default function Board({ initialSprint }: BoardProps) {
+export default function Board({ initialSprint, readOnly = false }: BoardProps) {
     const [tasks, setTasks] = useState<Task[]>(initialSprint.tasks)
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
 
@@ -80,6 +81,7 @@ export default function Board({ initialSprint }: BoardProps) {
                         draggedTaskId={draggedTaskId}
                         onDelete={handleDelete}
                         onAddTask={handleAddTask}
+                        readOnly={readOnly}
                     />
                 ))}
             </div>

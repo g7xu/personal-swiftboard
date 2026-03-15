@@ -8,9 +8,10 @@ import StickyNote from './StickyNote'
 
 interface TaskInputSectionProps {
     initialSprint: Sprint & { tasks: Task[] }
+    readOnly?: boolean
 }
 
-export default function TaskInputSection({ initialSprint }: TaskInputSectionProps) {
+export default function TaskInputSection({ initialSprint, readOnly = false }: TaskInputSectionProps) {
     const [newTaskContent, setNewTaskContent] = useState('')
     const [selectedCategory, setSelectedCategory] = useState<Category>('Not Sure')
     const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false)
@@ -77,6 +78,16 @@ export default function TaskInputSection({ initialSprint }: TaskInputSectionProp
             }
         }
     }, [isPlaygroundOpen, handleClickOutside, handleEscape])
+
+    if (readOnly) {
+        return (
+            <div className="relative w-full">
+                <div className="w-full max-w-2xl mx-auto text-center text-gray-400">
+                    This sprint is completed and read-only.
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="relative w-full">
