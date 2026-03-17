@@ -14,17 +14,69 @@ async function getSessionUser() {
 
 export async function getCurrentSprint() {
     const user = await getSessionUser()
+    const currentMonday = getCurrentWeekMonday()
+    const nextMonday = new Date(currentMonday)
+    nextMonday.setDate(nextMonday.getDate() + 7)
 
+    // Look for any sprint in the current week
     let sprint = await prisma.sprint.findFirst({
-        where: { status: 'ACTIVE', userId: user.id },
+        where: {
+            userId: user.id,
+            weekStart: { gte: currentMonday, lt: nextMonday },
+        },
         include: { tasks: true },
-        orderBy: { createdAt: 'desc' },
     })
 
     if (!sprint) {
+        // Backfill missing weeks before creating current sprint
+        const mostRecentSprint = await prisma.sprint.findFirst({
+            where: { userId: user.id },
+            orderBy: { weekStart: 'desc' },
+        })
+
+        if (mostRecentSprint) {
+            const lastMonday = getMondayOfWeek(mostRecentSprint.weekStart)
+            const gapMondays: Date[] = []
+            const walker = new Date(lastMonday)
+            walker.setDate(walker.getDate() + 7)
+
+            while (walker < currentMonday) {
+                gapMondays.push(new Date(walker))
+                walker.setDate(walker.getDate() + 7)
+            }
+
+            if (gapMondays.length > 0) {
+                // Only create MISSING sprints for weeks that have no sprint at all
+                const existingSprints = await prisma.sprint.findMany({
+                    where: {
+                        userId: user.id,
+                        weekStart: { gte: gapMondays[0], lt: currentMonday },
+                    },
+                    select: { weekStart: true },
+                })
+
+                const existingWeeks = new Set(
+                    existingSprints.map((s) => getMondayOfWeek(s.weekStart).getTime())
+                )
+
+                const missingSprints = gapMondays
+                    .filter((monday) => !existingWeeks.has(monday.getTime()))
+                    .map((monday) => ({
+                        weekStart: monday,
+                        theme: null,
+                        status: 'MISSING',
+                        userId: user.id!,
+                    }))
+
+                if (missingSprints.length > 0) {
+                    await prisma.sprint.createMany({ data: missingSprints })
+                }
+            }
+        }
+
         sprint = await prisma.sprint.create({
             data: {
-                weekStart: new Date(),
+                weekStart: currentMonday,
                 theme: 'New Sprint',
                 userId: user.id!,
             },
@@ -35,6 +87,13 @@ export async function getCurrentSprint() {
     return sprint
 }
 
+function getMondayOfWeek(date: Date): Date {
+    const d = new Date(date)
+    const dayOfWeek = d.getDay()
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + mondayOffset)
+}
+
 async function verifyTaskOwnership(taskId: string, userId: string) {
     const task = await prisma.task.findUnique({
         where: { id: taskId },
@@ -43,8 +102,8 @@ async function verifyTaskOwnership(taskId: string, userId: string) {
     if (!task || task.sprint.userId !== userId) {
         throw new Error('Unauthorized')
     }
-    if (task.sprint.status === 'COMPLETED') {
-        throw new Error('Cannot modify tasks in a completed sprint')
+    if (task.sprint.status === 'COMPLETED' || task.sprint.status === 'MISSING') {
+        throw new Error('Cannot modify tasks in a completed or missing sprint')
     }
     return task
 }
@@ -56,8 +115,8 @@ export async function createTask(content: string, sprintId: string, category: st
     if (!sprint || sprint.userId !== user.id) {
         throw new Error('Unauthorized')
     }
-    if (sprint.status === 'COMPLETED') {
-        throw new Error('Cannot add tasks to a completed sprint')
+    if (sprint.status === 'COMPLETED' || sprint.status === 'MISSING') {
+        throw new Error('Cannot add tasks to a completed or missing sprint')
     }
 
     await prisma.task.create({

@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
     sprint = await getCurrentSprint()
   }
 
-  const readOnly = sprint.status === 'COMPLETED'
+  const readOnly = sprint.status === 'COMPLETED' || sprint.status === 'MISSING'
 
   // Check for stale active sprints (only when viewing current sprint, not a specific one)
   const staleSprint = !sprintId ? await getStaleActiveSprint() : null
@@ -72,9 +72,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
           </h1>
           <p className="text-gray-400 text-lg">
             Week of {new Date(sprint.weekStart).toLocaleDateString()} • {sprint.theme}
-            {readOnly && (
+            {sprint.status === 'COMPLETED' && (
               <span className="ml-2 text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
                 Completed
+              </span>
+            )}
+            {sprint.status === 'MISSING' && (
+              <span className="ml-2 text-xs font-medium bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                Missing
               </span>
             )}
           </p>
