@@ -60,7 +60,7 @@ model Sprint {
   id          String   @id @default(uuid())
   weekStart   DateTime
   theme       String?
-  status      String   @default("ACTIVE") // ACTIVE, COMPLETED
+  status      String   @default("ACTIVE") // ACTIVE, COMPLETED, MISSING
   retroNotes  String?  // Markdown content
   createdAt   DateTime @default(now())
   userId      String
