@@ -202,11 +202,12 @@ export async function getSprintById(sprintId: string) {
     return sprint
 }
 
-export async function completeSprint(sprintId: string) {
+export async function completeSprint(sprintId: string, selectedTaskIds: string[] = []) {
     const user = await getSessionUser()
 
     const sprint = await prisma.sprint.findUnique({
         where: { id: sprintId },
+        include: { tasks: true },
     })
 
     if (!sprint || sprint.userId !== user.id) {
@@ -216,13 +217,136 @@ export async function completeSprint(sprintId: string) {
         throw new Error('Sprint is already completed')
     }
 
-    await prisma.sprint.update({
-        where: { id: sprintId },
-        data: { status: 'COMPLETED' },
+    // Validate selected tasks belong to this sprint and are Action tasks
+    if (selectedTaskIds.length > 0) {
+        const actionTasks = sprint.tasks.filter(t => t.status === 'Action')
+        const actionTaskIds = new Set(actionTasks.map(t => t.id))
+        for (const id of selectedTaskIds) {
+            if (!actionTaskIds.has(id)) {
+                throw new Error('Invalid task selection: task is not an Action task in this sprint')
+            }
+        }
+        if (selectedTaskIds.length > 3) {
+            throw new Error('Cannot carry forward more than 3 actions')
+        }
+    }
+
+    await prisma.$transaction(async (tx) => {
+        // Mark sprint as completed
+        await tx.sprint.update({
+            where: { id: sprintId },
+            data: { status: 'COMPLETED' },
+        })
+
+        // If there are selected actions, carry them to next sprint
+        if (selectedTaskIds.length > 0) {
+            const currentMonday = getCurrentWeekMonday()
+            const nextMonday = new Date(currentMonday)
+            nextMonday.setDate(nextMonday.getDate() + 7)
+
+            // Find or create next week's sprint
+            let nextSprint = await tx.sprint.findFirst({
+                where: {
+                    userId: user.id,
+                    weekStart: { gte: currentMonday, lt: nextMonday },
+                },
+            })
+
+            if (!nextSprint) {
+                nextSprint = await tx.sprint.create({
+                    data: {
+                        weekStart: currentMonday,
+                        theme: 'New Sprint',
+                        userId: user.id!,
+                    },
+                })
+            }
+
+            // Create carried action tasks in next sprint
+            const selectedTasks = sprint.tasks.filter(t => selectedTaskIds.includes(t.id))
+            await tx.task.createMany({
+                data: selectedTasks.map(t => ({
+                    content: t.content,
+                    status: 'Throne',
+                    color: t.color,
+                    isCarriedAction: true,
+                    sprintId: nextSprint.id,
+                })),
+            })
+        }
     })
 
     revalidatePath('/')
     revalidatePath('/sprints')
+}
+
+export async function getCarriedActions(sprintId: string) {
+    const user = await getSessionUser()
+
+    const sprint = await prisma.sprint.findUnique({
+        where: { id: sprintId },
+    })
+
+    if (!sprint || sprint.userId !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    return prisma.task.findMany({
+        where: {
+            sprintId,
+            isCarriedAction: true,
+        },
+    })
+}
+
+export async function toggleCarriedAction(taskId: string) {
+    const user = await getSessionUser()
+    const task = await prisma.task.findUnique({
+        where: { id: taskId },
+        include: { sprint: true },
+    })
+
+    if (!task || task.sprint.userId !== user.id) {
+        throw new Error('Unauthorized')
+    }
+    if (!task.isCarriedAction) {
+        throw new Error('Task is not a carried action')
+    }
+
+    const newStatus = task.status === 'Throne' ? 'Rose' : 'Throne'
+
+    await prisma.task.update({
+        where: { id: taskId },
+        data: { status: newStatus },
+    })
+
+    revalidatePath('/')
+    revalidatePath('/sprints')
+}
+
+export async function getActiveSprintCarriedActions() {
+    const user = await getSessionUser()
+    const currentMonday = getCurrentWeekMonday()
+    const nextMonday = new Date(currentMonday)
+    nextMonday.setDate(nextMonday.getDate() + 7)
+
+    const activeSprint = await prisma.sprint.findFirst({
+        where: {
+            userId: user.id,
+            weekStart: { gte: currentMonday, lt: nextMonday },
+        },
+    })
+
+    if (!activeSprint) {
+        return []
+    }
+
+    return prisma.task.findMany({
+        where: {
+            sprintId: activeSprint.id,
+            isCarriedAction: true,
+        },
+    })
 }
 
 function getCurrentWeekMonday() {
