@@ -9,6 +9,7 @@ interface StickyNoteProps {
         id: string
         content: string
         color: string
+        isCarriedAction?: boolean
     }
     index: number
     onDragStart: (taskId: string) => void
@@ -108,6 +109,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
     // handle click edit or toggle assign buttons
     const handleClick = () => {
         if (isEditing || isSaving) return
+        if (task.isCarriedAction) return
         if (onAssign) {
             setShowAssignButtons(prev => !prev)
         } else {
@@ -152,8 +154,8 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                 min-h-[80px] flex flex-col items-start justify-start text-left
             `}
         >
-            {/* Edit/Delete icons - visible on hover */}
-            {!isEditing && !readOnly && (
+            {/* Edit/Delete icons - visible on hover, hidden for carried actions */}
+            {!isEditing && !readOnly && !task.isCarriedAction && (
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={(e) => {

@@ -85,7 +85,7 @@ export default function Column({ id, title, tasks, onDragStart, onDragEnd, onDro
                         onDragStart={onDragStart}
                         onDragEnd={onDragEnd}
                         isDragging={draggedTaskId === task.id}
-                        onDelete={readOnly ? undefined : onDelete}
+                        onDelete={readOnly || task.isCarriedAction ? undefined : onDelete}
                         readOnly={readOnly}
                     />
                 ))}

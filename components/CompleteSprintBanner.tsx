@@ -1,27 +1,24 @@
 'use client'
 
-import { completeSprint } from '@/app/actions'
 import { Sprint, Task } from '@prisma/client'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import ActionPickerModal from './ActionPickerModal'
 
 interface CompleteSprintBannerProps {
     staleSprint: Sprint & { tasks: Task[] }
 }
 
 export default function CompleteSprintBanner({ staleSprint }: CompleteSprintBannerProps) {
-    const router = useRouter()
-    const [isCompleting, setIsCompleting] = useState(false)
+    const [showPicker, setShowPicker] = useState(false)
 
-    const handleComplete = async () => {
-        setIsCompleting(true)
-        try {
-            await completeSprint(staleSprint.id)
-            router.refresh()
-        } catch (error) {
-            console.error('Failed to complete sprint:', error)
-            setIsCompleting(false)
-        }
+    if (showPicker) {
+        return (
+            <ActionPickerModal
+                sprintId={staleSprint.id}
+                tasks={staleSprint.tasks}
+                onClose={() => setShowPicker(false)}
+            />
+        )
     }
 
     const taskCount = staleSprint.tasks.length
@@ -50,11 +47,10 @@ export default function CompleteSprintBanner({ staleSprint }: CompleteSprintBann
                     </p>
                 </div>
                 <button
-                    onClick={handleComplete}
-                    disabled={isCompleting}
-                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setShowPicker(true)}
+                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors cursor-pointer"
                 >
-                    {isCompleting ? 'Completing...' : 'Complete & Archive'}
+                    Complete & Archive
                 </button>
             </div>
         </div>

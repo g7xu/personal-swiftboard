@@ -30,6 +30,11 @@ export default function Board({ initialSprint, readOnly = false }: BoardProps) {
 
         const task = tasks.find(t => t.id === taskId)
         if (task) {
+            // Carried actions can only move between Throne and Rose
+            if (task.isCarriedAction && !['Throne', 'Rose'].includes(targetStatus)) {
+                setDraggedTaskId(null)
+                return
+            }
             // Task is in local state (board-to-board drag)
             if (task.status === targetStatus) {
                 setDraggedTaskId(null)

@@ -51,7 +51,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
           </Link>
           <div className="absolute top-8 right-0 flex items-center gap-4">
             {!readOnly && (
-              <CompleteSprintButton sprintId={sprint.id} />
+              <CompleteSprintButton sprintId={sprint.id} tasks={sprint.tasks} />
             )}
             <form
               action={async () => {
