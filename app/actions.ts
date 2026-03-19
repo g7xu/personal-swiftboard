@@ -143,7 +143,11 @@ export async function updateTaskStatus(taskId: string, newStatus: string) {
 
 export async function deleteTask(taskId: string) {
     const user = await getSessionUser()
-    await verifyTaskOwnership(taskId, user.id!)
+    const task = await verifyTaskOwnership(taskId, user.id!)
+
+    if (task.isCarriedAction) {
+        throw new Error('Cannot delete a carried action task')
+    }
 
     await prisma.task.delete({
         where: { id: taskId },

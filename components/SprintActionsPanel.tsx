@@ -5,6 +5,13 @@ import { Task } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+const colorClasses: Record<string, string> = {
+    yellow: 'bg-yellow-100',
+    blue: 'bg-blue-100',
+    pink: 'bg-pink-100',
+    green: 'bg-green-100',
+}
+
 interface SprintActionsPanelProps {
     carriedActions: Task[]
 }
@@ -27,12 +34,12 @@ export default function SprintActionsPanel({ carriedActions }: SprintActionsPane
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Focus Actions</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Action of the Week</h2>
 
             {carriedActions.length === 0 ? (
                 <p className="text-gray-400 text-sm">No actions for this sprint</p>
             ) : (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                     {carriedActions.map(action => {
                         const isCompleted = action.status === 'Rose'
                         const isToggling = togglingId === action.id
@@ -43,32 +50,26 @@ export default function SprintActionsPanel({ carriedActions }: SprintActionsPane
                                 type="button"
                                 onClick={() => handleToggle(action.id)}
                                 disabled={isToggling}
-                                className={`text-left p-3 rounded-md border transition-colors cursor-pointer ${
-                                    isCompleted
-                                        ? 'border-green-200 bg-green-50'
-                                        : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                } ${isToggling ? 'opacity-50' : ''}`}
+                                className={`
+                                    relative text-left p-2 rounded-[5px] shadow-swiftboard
+                                    ${colorClasses[action.color] || colorClasses.yellow}
+                                    text-gray-800 font-normal text-sm sm:text-base
+                                    min-h-[60px] flex flex-col items-start justify-start
+                                    transition-all duration-150 cursor-pointer
+                                    ${isCompleted ? 'opacity-60' : 'hover:shadow-lg'}
+                                    ${isToggling ? 'opacity-50' : ''}
+                                `}
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                        isCompleted
-                                            ? 'border-green-500 bg-green-500'
-                                            : 'border-gray-300'
-                                    }`}>
-                                        {isCompleted && (
-                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
+                                {isCompleted && (
+                                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
                                     </div>
-                                    <span className={`text-sm ${
-                                        isCompleted
-                                            ? 'text-gray-400 line-through'
-                                            : 'text-gray-900'
-                                    }`}>
-                                        {action.content}
-                                    </span>
-                                </div>
+                                )}
+                                <span className={isCompleted ? 'line-through' : ''}>
+                                    {action.content}
+                                </span>
                             </button>
                         )
                     })}
