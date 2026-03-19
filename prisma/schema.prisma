@@ -69,10 +69,11 @@ model Sprint {
 }
 
 model Task {
-  id          String   @id @default(uuid())
-  content     String
-  status      String   @default("Not Sure") // Throne, Rose, Seed, Action, Not Sure
-  color       String   @default("yellow") // For the sticky note look (yellow, blue, pink, green)
-  sprintId    String
-  sprint      Sprint   @relation(fields: [sprintId], references: [id])
+  id              String   @id @default(uuid())
+  content         String
+  status          String   @default("Not Sure") // Throne, Rose, Seed, Action, Not Sure
+  color           String   @default("yellow") // For the sticky note look (yellow, blue, pink, green)
+  isCarriedAction Boolean  @default(false)
+  sprintId        String
+  sprint          Sprint   @relation(fields: [sprintId], references: [id])
 }
