@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
 
-export type Category = 'Not Sure' | 'Throne' | 'Rose' | 'Seed' | 'Action'
+export type Category = 'Not Sure' | 'Thorn' | 'Rose' | 'Seed' | 'Action'
 
 interface CategorySelectorProps {
   selectedCategory: Category
@@ -11,12 +11,12 @@ interface CategorySelectorProps {
   inputRef?: React.RefObject<HTMLInputElement | null>
 }
 
-const CATEGORIES: Category[] = ['Not Sure', 'Throne', 'Rose', 'Seed', 'Action']
+const CATEGORIES: Category[] = ['Not Sure', 'Thorn', 'Rose', 'Seed', 'Action']
 
 // Color mapping - each category gets its own color
 const categoryColors: Record<Category, string> = {
   'Not Sure': 'bg-gray-100 hover:bg-gray-200 border-gray-300',
-  'Throne': 'bg-yellow-100 hover:bg-yellow-200 border-yellow-300',
+  'Thorn': 'bg-yellow-100 hover:bg-yellow-200 border-yellow-300',
   'Rose': 'bg-pink-100 hover:bg-pink-200 border-pink-300',
   'Seed': 'bg-green-100 hover:bg-green-200 border-green-300',
   'Action': 'bg-blue-100 hover:bg-blue-200 border-blue-300',

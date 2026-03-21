@@ -134,8 +134,8 @@ export async function updateTaskStatus(taskId: string, newStatus: string) {
     const user = await getSessionUser()
     const task = await verifyTaskOwnership(taskId, user.id!)
 
-    if (task.isCarriedAction && !['Throne', 'Rose'].includes(newStatus)) {
-        throw new Error('Carried actions can only be moved between Throne and Rose')
+    if (task.isCarriedAction && !['Thorn', 'Rose'].includes(newStatus)) {
+        throw new Error('Carried actions can only be moved between Thorn and Rose')
     }
 
     await prisma.task.update({
@@ -275,7 +275,7 @@ export async function completeSprint(sprintId: string, selectedTaskIds: string[]
             await tx.task.createMany({
                 data: selectedTasks.map(t => ({
                     content: t.content,
-                    status: 'Throne',
+                    status: 'Thorn',
                     color: t.color,
                     isCarriedAction: true,
                     sprintId: nextSprint.id,
@@ -322,7 +322,7 @@ export async function toggleCarriedAction(taskId: string) {
         throw new Error('Task is not a carried action')
     }
 
-    const newStatus = task.status === 'Throne' ? 'Rose' : 'Throne'
+    const newStatus = task.status === 'Thorn' ? 'Rose' : 'Thorn'
 
     await prisma.task.update({
         where: { id: taskId },

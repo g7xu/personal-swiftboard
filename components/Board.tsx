@@ -11,7 +11,7 @@ interface BoardProps {
     readOnly?: boolean
 }
 
-const COLUMNS = ['Throne', 'Rose', 'Seed', 'Action']
+const COLUMNS = ['Thorn', 'Rose', 'Seed', 'Action']
 
 export default function Board({ initialSprint, readOnly = false }: BoardProps) {
     const [tasks, setTasks] = useState<Task[]>(initialSprint.tasks)
@@ -30,8 +30,8 @@ export default function Board({ initialSprint, readOnly = false }: BoardProps) {
 
         const task = tasks.find(t => t.id === taskId)
         if (task) {
-            // Carried actions can only move between Throne and Rose
-            if (task.isCarriedAction && !['Throne', 'Rose'].includes(targetStatus)) {
+            // Carried actions can only move between Thorn and Rose
+            if (task.isCarriedAction && !['Thorn', 'Rose'].includes(targetStatus)) {
                 setDraggedTaskId(null)
                 return
             }

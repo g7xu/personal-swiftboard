@@ -52,7 +52,7 @@ function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
 }
 
 const assignButtons = [
-    { status: 'Throne', label: 'Throne', color: 'bg-yellow-200 hover:bg-yellow-300' },
+    { status: 'Thorn', label: 'Thorn', color: 'bg-yellow-200 hover:bg-yellow-300' },
     { status: 'Rose', label: 'Rose', color: 'bg-pink-200 hover:bg-pink-300' },
     { status: 'Seed', label: 'Seed', color: 'bg-green-200 hover:bg-green-300' },
     { status: 'Action', label: 'Action', color: 'bg-blue-200 hover:bg-blue-300' },
