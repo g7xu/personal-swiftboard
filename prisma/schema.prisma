@@ -73,7 +73,8 @@ model Task {
   content         String
   status          String   @default("Not Sure") // Thorn, Rose, Seed, Action, Not Sure
   color           String   @default("yellow") // For the sticky note look (yellow, blue, pink, green)
-  isCarriedAction Boolean  @default(false)
+  isCarriedAction Boolean   @default(false)
+  analyzedAt      DateTime?
   sprintId        String
-  sprint          Sprint   @relation(fields: [sprintId], references: [id])
+  sprint          Sprint    @relation(fields: [sprintId], references: [id])
 }
