@@ -3,6 +3,13 @@
 import prisma from '@/lib/prisma'
 import { auth } from '@/auth'
 import { revalidatePath } from 'next/cache'
+import { getProvider } from '@/lib/ai'
+import { getAnalysisPrompt } from '@/lib/prompts'
+
+const AI_ALLOWED_EMAILS = [
+    'guoxuan.xu8@gmail.com',
+    'andrewhyang@gmail.com',
+]
 
 async function getSessionUser() {
     const session = await auth()
@@ -10,6 +17,14 @@ async function getSessionUser() {
         throw new Error('Unauthorized')
     }
     return session.user
+}
+
+async function getAIAuthorizedUser() {
+    const user = await getSessionUser()
+    if (!AI_ALLOWED_EMAILS.includes(user.email ?? '')) {
+        throw new Error('Not authorized for AI features')
+    }
+    return user
 }
 
 export async function getCurrentSprint() {
@@ -176,8 +191,85 @@ export async function updateTaskContent(taskId: string, content: string) {
 
     await prisma.task.update({
         where: { id: taskId },
-        data: { content },
+        data: { content, analyzedAt: null },
     })
+    revalidatePath('/')
+}
+
+export async function analyzeTask(taskId: string): Promise<{ taskId: string; suggestedContent: string } | null> {
+    const user = await getAIAuthorizedUser()
+    const task = await verifyTaskOwnership(taskId, user.id!)
+
+    if (task.isCarriedAction) {
+        return null
+    }
+    if (task.status === 'Not Sure') {
+        return null
+    }
+    if (task.analyzedAt !== null) {
+        return null
+    }
+
+    const content = task.content.trim().slice(0, 1000)
+    const systemPrompt = getAnalysisPrompt(task.status)
+    if (!systemPrompt) {
+        return null
+    }
+
+    const provider = getProvider()
+    const suggestedContent = await provider.analyze(content, systemPrompt)
+    return { taskId, suggestedContent }
+}
+
+export async function analyzeAllTasks(sprintId: string): Promise<{ taskId: string; suggestedContent: string }[]> {
+    const user = await getAIAuthorizedUser()
+
+    const sprint = await prisma.sprint.findUnique({
+        where: { id: sprintId },
+        include: { tasks: true },
+    })
+
+    if (!sprint || sprint.userId !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    const eligibleTasks = sprint.tasks.filter(
+        (t) => !t.isCarriedAction && t.status !== 'Not Sure' && t.analyzedAt === null
+    )
+
+    const results: { taskId: string; suggestedContent: string }[] = []
+    for (const task of eligibleTasks) {
+        const result = await analyzeTask(task.id)
+        if (result) {
+            results.push(result)
+        }
+    }
+
+    return results
+}
+
+export async function keepAnalysis(taskId: string, newContent: string) {
+    const user = await getAIAuthorizedUser()
+    await verifyTaskOwnership(taskId, user.id!)
+
+    await prisma.task.update({
+        where: { id: taskId },
+        data: { content: newContent, analyzedAt: new Date() },
+    })
+    revalidatePath('/')
+}
+
+export async function keepAllAnalyses(updates: { taskId: string; content: string }[]) {
+    const user = await getAIAuthorizedUser()
+
+    await prisma.$transaction(
+        updates.map((u) =>
+            prisma.task.update({
+                where: { id: u.taskId },
+                data: { content: u.content, analyzedAt: new Date() },
+            })
+        )
+    )
     revalidatePath('/')
 }
 

@@ -1,8 +1,13 @@
 'use client'
 
-import React, { useRef, useState, useEffect, useCallback } from 'react'
+import React, { useRef, useState, useEffect, useCallback, type RefCallback } from 'react'
 import { updateTaskContent } from '@/app/actions'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Sparkles, Loader2, Check, Undo2 } from 'lucide-react'
+
+interface PendingAnalysis {
+    original: string
+    suggested: string
+}
 
 interface StickyNoteProps {
     task: {
@@ -18,6 +23,11 @@ interface StickyNoteProps {
     onDelete?: (taskId: string) => void
     onAssign?: (taskId: string, status: string) => void
     readOnly?: boolean
+    pendingAnalysis?: PendingAnalysis
+    isAnalyzing?: boolean
+    onAnalyze?: (taskId: string) => void
+    onKeep?: (taskId: string) => void
+    onRevert?: (taskId: string) => void
 }
 
 const colorClasses: Record<string, string> = {
@@ -58,7 +68,7 @@ const assignButtons = [
     { status: 'Action', label: 'Action', color: 'bg-blue-200 hover:bg-blue-300' },
 ]
 
-export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging, onDelete, onAssign, readOnly = false }: StickyNoteProps) {
+export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging, onDelete, onAssign, readOnly = false, pendingAnalysis, isAnalyzing, onAnalyze, onKeep, onRevert }: StickyNoteProps) {
     const dragRef = useRef<HTMLDivElement>(null)
 
     const [isEditing, setIsEditing] = useState(false)
@@ -108,7 +118,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
 
     // handle click edit or toggle assign buttons
     const handleClick = () => {
-        if (isEditing || isSaving) return
+        if (isEditing || isSaving || pendingAnalysis) return
         if (task.isCarriedAction) return
         if (onAssign) {
             setShowAssignButtons(prev => !prev)
@@ -138,6 +148,8 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
 
     }
 
+    const displayContent = pendingAnalysis ? pendingAnalysis.suggested : task.content
+
     return (
         <div
             ref={dragRef}
@@ -150,13 +162,32 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                 p-2 mb-4 rounded-[5px] shadow-swiftboard ${readOnly ? 'cursor-default' : 'cursor-move'}
                 ${colorClasses[task.color] || colorClasses.yellow}
                 ${isDragging ? 'opacity-50' : 'hover:shadow-lg transition-shadow'}
+                ${pendingAnalysis ? 'ring-2 ring-purple-400 ring-offset-1' : ''}
                 text-gray-800 font-normal text-sm sm:text-base
                 min-h-[80px] flex flex-col items-start justify-start text-left
             `}
         >
-            {/* Edit/Delete icons - visible on hover, hidden for carried actions */}
-            {!isEditing && !readOnly && !task.isCarriedAction && (
+            {/* Edit/Delete/Analyze icons - visible on hover, hidden for carried actions */}
+            {!isEditing && !readOnly && !task.isCarriedAction && !pendingAnalysis && (
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Analyze single note */}
+                    {onAnalyze && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onAnalyze(task.id)
+                            }}
+                            disabled={isAnalyzing}
+                            className="p-1 rounded hover:bg-black/10 transition-colors"
+                            title="Analyze"
+                        >
+                            {isAnalyzing ? (
+                                <Loader2 size={14} className="text-purple-600 animate-spin" />
+                            ) : (
+                                <Sparkles size={14} className="text-purple-600" />
+                            )}
+                        </button>
+                    )}
                     <button
                         onClick={(e) => {
                             e.stopPropagation()
@@ -186,8 +217,18 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
 
             {isEditing ? (
                 <textarea
+                    ref={(el) => {
+                        if (el) {
+                            el.style.height = 'auto'
+                            el.style.height = el.scrollHeight + 'px'
+                        }
+                    }}
                     value={draftContent}
-                    onChange={(e) => setDraftContent(e.target.value)}
+                    onChange={(e) => {
+                        setDraftContent(e.target.value)
+                        e.target.style.height = 'auto'
+                        e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
                     onBlur={handleSubmit}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -199,11 +240,37 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                         }
                     }}
                     autoFocus
-                    className="w-full h-full resize-none bg-transparent border-none outline-none text-gray-800 font-normal text-sm sm:text-base"
+                    className="w-full resize-none bg-transparent border-none outline-none text-gray-800 font-normal text-sm sm:text-base"
                 />
             ) : (
-                <div className='w-full h-full'>
-                    {task.content}
+                <div className='w-full h-full whitespace-pre-wrap'>
+                    {displayContent}
+                </div>
+            )}
+
+            {/* Keep / Revert buttons for pending analysis */}
+            {pendingAnalysis && onKeep && onRevert && (
+                <div className="flex gap-2 mt-2 w-full">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onKeep(task.id)
+                        }}
+                        className="flex items-center gap-1 flex-1 justify-center px-2 py-1 text-xs font-medium rounded bg-green-200 hover:bg-green-300 text-gray-700 transition-colors"
+                    >
+                        <Check size={12} />
+                        Keep
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onRevert(task.id)
+                        }}
+                        className="flex items-center gap-1 flex-1 justify-center px-2 py-1 text-xs font-medium rounded bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
+                    >
+                        <Undo2 size={12} />
+                        Revert
+                    </button>
                 </div>
             )}
 

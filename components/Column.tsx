@@ -4,6 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import StickyNote from './StickyNote'
 import { Task } from '@prisma/client'
 
+interface PendingAnalysis {
+    original: string
+    suggested: string
+}
+
 interface ColumnProps {
     id: string
     title: string
@@ -15,9 +20,14 @@ interface ColumnProps {
     onDelete: (taskId: string) => void
     onAddTask: (content: string, status: string) => void
     readOnly?: boolean
+    pendingAnalyses?: Map<string, PendingAnalysis>
+    analyzingTaskId?: string | null
+    onAnalyzeSingle?: (taskId: string) => void
+    onKeep?: (taskId: string) => void
+    onRevert?: (taskId: string) => void
 }
 
-export default function Column({ id, title, tasks, onDragStart, onDragEnd, onDrop, draggedTaskId, onDelete, onAddTask, readOnly = false }: ColumnProps) {
+export default function Column({ id, title, tasks, onDragStart, onDragEnd, onDrop, draggedTaskId, onDelete, onAddTask, readOnly = false, pendingAnalyses, analyzingTaskId, onAnalyzeSingle, onKeep, onRevert }: ColumnProps) {
     const [isDragOver, setIsDragOver] = useState(false)
     const [isAdding, setIsAdding] = useState(false)
     const [newContent, setNewContent] = useState('')
@@ -87,6 +97,11 @@ export default function Column({ id, title, tasks, onDragStart, onDragEnd, onDro
                         isDragging={draggedTaskId === task.id}
                         onDelete={readOnly || task.isCarriedAction ? undefined : onDelete}
                         readOnly={readOnly}
+                        pendingAnalysis={pendingAnalyses?.get(task.id)}
+                        isAnalyzing={analyzingTaskId === task.id}
+                        onAnalyze={onAnalyzeSingle}
+                        onKeep={onKeep}
+                        onRevert={onRevert}
                     />
                 ))}
 
