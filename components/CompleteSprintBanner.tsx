@@ -3,6 +3,7 @@
 import { Sprint, Task } from '@prisma/client'
 import { useState } from 'react'
 import ActionPickerModal from './ActionPickerModal'
+import { getSprintWeekLabel } from '@/lib/sprintLabel'
 
 interface CompleteSprintBannerProps {
     staleSprint: Sprint & { tasks: Task[] }
@@ -34,8 +35,8 @@ export default function CompleteSprintBanner({ staleSprint }: CompleteSprintBann
                 </p>
                 <div className="bg-gray-50 rounded-md p-4 mb-6 text-left">
                     <p className="text-sm text-gray-600">
-                        <span className="font-medium">Week of:</span>{' '}
-                        {new Date(staleSprint.weekStart).toLocaleDateString()}
+                        <span className="font-medium">Sprint:</span>{' '}
+                        {getSprintWeekLabel(new Date(staleSprint.weekStart))}
                     </p>
                     {staleSprint.theme && (
                         <p className="text-sm text-gray-600 mt-1">

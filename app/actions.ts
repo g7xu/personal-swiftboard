@@ -93,7 +93,7 @@ export async function getCurrentSprint() {
         sprint = await prisma.sprint.create({
             data: {
                 weekStart: currentMonday,
-                theme: 'New Sprint',
+                theme: null,
                 userId: user.id!,
             },
             include: { tasks: true },
@@ -184,6 +184,16 @@ export async function updateTaskColor(taskId: string, color: string) {
         data: { color },
     })
     revalidatePath('/')
+}
+
+export async function updateSprintTheme(sprintId: string, theme: string) {
+    const user = await getSessionUser()
+    await prisma.sprint.update({
+        where: { id: sprintId, userId: user.id! },
+        data: { theme: theme.trim() || null },
+    })
+    revalidatePath('/')
+    revalidatePath('/sprints')
 }
 
 export async function updateTaskContent(taskId: string, content: string) {
@@ -318,6 +328,12 @@ export async function completeSprint(sprintId: string, selectedTaskIds: string[]
         throw new Error('Sprint is already completed')
     }
 
+    // Prevent completing sprints that are later than the current week
+    const currentMonday = getCurrentWeekMonday()
+    if (new Date(sprint.weekStart) > currentMonday) {
+        throw new Error('Cannot complete a future sprint')
+    }
+
     // Validate selected tasks belong to this sprint and are Action tasks
     if (selectedTaskIds.length > 0) {
         const actionTasks = sprint.tasks.filter(t => t.status === 'Action')
@@ -339,31 +355,38 @@ export async function completeSprint(sprintId: string, selectedTaskIds: string[]
             data: { status: 'COMPLETED' },
         })
 
-        // If there are selected actions, carry them to next sprint
-        if (selectedTaskIds.length > 0) {
-            const currentMonday = getCurrentWeekMonday()
-            const nextMonday = new Date(currentMonday)
-            nextMonday.setDate(nextMonday.getDate() + 7)
+        // Clear carried action flag so they become regular historical tasks
+        await tx.task.updateMany({
+            where: { sprintId: sprintId, isCarriedAction: true },
+            data: { isCarriedAction: false },
+        })
 
-            // Find or create next week's sprint
-            let nextSprint = await tx.sprint.findFirst({
-                where: {
-                    userId: user.id,
-                    weekStart: { gte: currentMonday, lt: nextMonday },
+        // Always create the next week's sprint after the completed one
+        const sprintMonday = new Date(sprint.weekStart)
+        const nextWeekMonday = new Date(sprintMonday)
+        nextWeekMonday.setDate(nextWeekMonday.getDate() + 7)
+        const weekAfterNext = new Date(nextWeekMonday)
+        weekAfterNext.setDate(weekAfterNext.getDate() + 7)
+
+        let nextSprint = await tx.sprint.findFirst({
+            where: {
+                userId: user.id,
+                weekStart: { gte: nextWeekMonday, lt: weekAfterNext },
+            },
+        })
+
+        if (!nextSprint) {
+            nextSprint = await tx.sprint.create({
+                data: {
+                    weekStart: nextWeekMonday,
+                    theme: null,
+                    userId: user.id!,
                 },
             })
+        }
 
-            if (!nextSprint) {
-                nextSprint = await tx.sprint.create({
-                    data: {
-                        weekStart: currentMonday,
-                        theme: 'New Sprint',
-                        userId: user.id!,
-                    },
-                })
-            }
-
-            // Create carried action tasks in next sprint
+        // Carry selected actions to the next sprint
+        if (selectedTaskIds.length > 0) {
             const selectedTasks = sprint.tasks.filter(t => selectedTaskIds.includes(t.id))
             await tx.task.createMany({
                 data: selectedTasks.map(t => ({

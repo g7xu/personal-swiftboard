@@ -7,6 +7,7 @@ import Board from '@/components/Board'
 import CompleteSprintBanner from '@/components/CompleteSprintBanner'
 import CompleteSprintButton from '@/components/CompleteSprintButton'
 import Link from 'next/link'
+import { getSprintWeekLabel } from '@/lib/sprintLabel'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,7 +51,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
             Sprints
           </Link>
           <div className="absolute top-8 right-0 flex items-center gap-4">
-            {!readOnly && (
+            {!readOnly && new Date(sprint.weekStart) <= new Date() && (
               <CompleteSprintButton sprintId={sprint.id} tasks={sprint.tasks} />
             )}
             <form
@@ -71,7 +72,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
             Personal Swiftboard
           </h1>
           <p className="text-gray-400 text-lg">
-            Week of {new Date(sprint.weekStart).toLocaleDateString()} • {sprint.theme}
+            {getSprintWeekLabel(new Date(sprint.weekStart))}{sprint.theme ? ` \u00b7 ${sprint.theme}` : ''}
             {sprint.status === 'COMPLETED' && (
               <span className="ml-2 text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
                 Completed
@@ -85,12 +86,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
           </p>
         </header>
 
-        <section
-          id="task-section"
-          className="min-h-screen flex items-center py-[50px]"
-        >
-          <TaskInputSection initialSprint={sprint} readOnly={readOnly} />
-        </section>
+        {!readOnly && (
+          <section
+            id="task-section"
+            className="min-h-screen flex items-center py-[50px]"
+          >
+            <TaskInputSection initialSprint={sprint} />
+          </section>
+        )}
 
         <section
           id="board-section"
