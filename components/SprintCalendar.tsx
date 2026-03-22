@@ -21,11 +21,10 @@ const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 function getMondayOfWeek(date: Date): string {
     const d = new Date(date)
-    const day = d.getDay()
+    const day = d.getUTCDay()
     const diff = day === 0 ? -6 : 1 - day
-    d.setDate(d.getDate() + diff)
-    d.setHours(0, 0, 0, 0)
-    return d.toISOString().slice(0, 10)
+    const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff))
+    return monday.toISOString().slice(0, 10)
 }
 
 function getStatusColor(status: string): string {
@@ -55,8 +54,8 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
     // Default to month of most recent sprint
     const mostRecent = sprints[0]
     const initialDate = mostRecent ? new Date(mostRecent.weekStart) : new Date()
-    const [viewYear, setViewYear] = useState(initialDate.getFullYear())
-    const [viewMonth, setViewMonth] = useState(initialDate.getMonth())
+    const [viewYear, setViewYear] = useState(initialDate.getUTCFullYear())
+    const [viewMonth, setViewMonth] = useState(initialDate.getUTCMonth())
 
     const prevMonth = () => {
         if (viewMonth === 0) {
@@ -100,12 +99,12 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
     const getWeekSprint = (week: (number | null)[]): SprintInfo | undefined => {
         const mondayDay = week[0]
         if (mondayDay !== null) {
-            const key = new Date(viewYear, viewMonth, mondayDay).toISOString().slice(0, 10)
+            const key = new Date(Date.UTC(viewYear, viewMonth, mondayDay)).toISOString().slice(0, 10)
             return sprintByMonday.get(key)
         }
         const firstDayInWeek = week.find(d => d !== null)
         if (firstDayInWeek !== undefined && firstDayInWeek !== null) {
-            const date = new Date(viewYear, viewMonth, firstDayInWeek)
+            const date = new Date(Date.UTC(viewYear, viewMonth, firstDayInWeek))
             const key = getMondayOfWeek(date)
             return sprintByMonday.get(key)
         }
@@ -116,7 +115,7 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
     const filteredSprints = useMemo(() => {
         return sprints.filter(s => {
             const d = new Date(s.weekStart)
-            return d.getFullYear() === viewYear && d.getMonth() === viewMonth
+            return d.getUTCFullYear() === viewYear && d.getUTCMonth() === viewMonth
         })
     }, [sprints, viewYear, viewMonth])
 

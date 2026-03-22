@@ -105,9 +105,9 @@ export async function getCurrentSprint() {
 
 function getMondayOfWeek(date: Date): Date {
     const d = new Date(date)
-    const dayOfWeek = d.getDay()
+    const dayOfWeek = d.getUTCDay()
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + mondayOffset)
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + mondayOffset))
 }
 
 async function verifyTaskOwnership(taskId: string, userId: string) {
@@ -477,9 +477,9 @@ export async function getActiveSprintCarriedActions() {
 
 function getCurrentWeekMonday() {
     const now = new Date()
-    const dayOfWeek = now.getDay()
+    const dayOfWeek = now.getUTCDay()
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset)
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + mondayOffset))
 }
 
 export async function hasCompletedSprintThisWeek() {

@@ -1,15 +1,15 @@
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export function getSprintWeekLabel(weekStart: Date): string {
-    const month = weekStart.getMonth()
-    const year = weekStart.getFullYear()
+    const month = weekStart.getUTCMonth()
+    const year = weekStart.getUTCFullYear()
+    const date = weekStart.getUTCDate()
 
-    // Count which Monday of the month this is
+    // Count which Monday of the month this date falls on
     let weekNumber = 0
-    const d = new Date(year, month, 1)
-    while (d <= weekStart) {
-        if (d.getDay() === 1) weekNumber++
-        d.setDate(d.getDate() + 1)
+    for (let day = 1; day <= date; day++) {
+        const d = new Date(Date.UTC(year, month, day))
+        if (d.getUTCDay() === 1) weekNumber++
     }
     // If weekStart is before the first Monday (starts in prev month's week), it's week 1
     if (weekNumber === 0) weekNumber = 1
