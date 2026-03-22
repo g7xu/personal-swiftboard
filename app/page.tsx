@@ -85,12 +85,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
           </p>
         </header>
 
-        <section
-          id="task-section"
-          className="min-h-screen flex items-center py-[50px]"
-        >
-          <TaskInputSection initialSprint={sprint} readOnly={readOnly} />
-        </section>
+        {!readOnly && (
+          <section
+            id="task-section"
+            className="min-h-screen flex items-center py-[50px]"
+          >
+            <TaskInputSection initialSprint={sprint} />
+          </section>
+        )}
 
         <section
           id="board-section"
