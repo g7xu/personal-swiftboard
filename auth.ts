@@ -18,6 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         "1223348972@qq.com",
         "zxh3145407090@gmail.com",
         "andrewhyang@gmail.com",
+        "Joexu2018@gmail.com",
       ]
       return allowedEmails.includes(user.email ?? "")
     },
