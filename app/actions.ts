@@ -9,7 +9,7 @@ import { getAnalysisPrompt } from '@/lib/prompts'
 const AI_ALLOWED_EMAILS = [
     'guoxuan.xu8@gmail.com',
     'andrewhyang@gmail.com',
-    'Joexu2018@gmail.com',
+    'joexu2018@gmail.com',
 ]
 
 async function getSessionUser() {
