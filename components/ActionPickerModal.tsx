@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 const colorClasses: Record<string, string> = {
-    yellow: 'bg-yellow-100',
-    blue: 'bg-blue-100',
-    pink: 'bg-pink-100',
-    green: 'bg-green-100',
+    yellow: 'bg-note-yellow',
+    blue: 'bg-note-blue',
+    pink: 'bg-note-pink',
+    green: 'bg-note-green',
 }
 
 interface ActionPickerModalProps {
@@ -60,45 +60,45 @@ export default function ActionPickerModal({ sprintId, tasks, onClose }: ActionPi
     }
 
     return (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 max-w-2xl w-full mx-4">
-                <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">
-                    Complete Sprint
+        <div className="fixed inset-0 bg-ink/35 backdrop-blur-[2px] z-50 flex items-center justify-center">
+            <div className="bg-paper rounded-md shadow-2xl p-8 max-w-2xl w-full mx-4">
+                <h2 className="font-print text-sm font-bold uppercase tracking-[0.16em] text-ink mb-2 text-center">
+                    Complete sprint
                 </h2>
 
                 {actionTasks.length === 0 ? (
                     <>
-                        <p className="text-gray-500 mb-6 text-center">
-                            No action tasks to carry forward. The sprint will be marked as completed.
+                        <p className="text-ink/60 mb-6 text-center font-hand text-xl">
+                            No action notes to carry forward — the week will be stamped completed.
                         </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={onClose}
                                 disabled={isCompleting}
-                                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="flex-1 px-6 py-3 border border-ink/25 text-ink rounded-sm font-print text-[11px] font-bold uppercase tracking-[0.12em] hover:bg-ink/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirm}
                                 disabled={isCompleting}
-                                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="flex-1 px-6 py-3 bg-ink text-paper rounded-sm font-print text-[11px] font-bold uppercase tracking-[0.12em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
-                                {isCompleting ? 'Completing...' : 'Complete Sprint'}
+                                {isCompleting ? 'Completing…' : 'Complete sprint'}
                             </button>
                         </div>
                     </>
                 ) : (
                     <>
-                        <p className="text-gray-500 mb-4 text-center">
+                        <p className="text-ink/60 mb-4 text-center font-hand text-xl">
                             {mustSelectExactly3
-                                ? 'Select 3 action tasks to carry forward as focus items for next week.'
-                                : `All ${actionTasks.length} action task${actionTasks.length !== 1 ? 's' : ''} will be carried forward as focus items.`
+                                ? 'Pick 3 action notes to carry into next week.'
+                                : `All ${actionTasks.length} action note${actionTasks.length !== 1 ? 's' : ''} will carry into next week.`
                             }
                         </p>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-6 max-h-80 overflow-y-auto p-4">
-                            {actionTasks.map(task => {
+                            {actionTasks.map((task, i) => {
                                 const isSelected = mustSelectExactly3
                                     ? selectedIds.has(task.id)
                                     : true
@@ -111,18 +111,19 @@ export default function ActionPickerModal({ sprintId, tasks, onClose }: ActionPi
                                         onClick={() => toggleTask(task.id)}
                                         disabled={isDisabled || !mustSelectExactly3}
                                         className={`
-                                            relative text-left p-2 rounded-[5px] shadow-swiftboard
+                                            relative text-left note p-3 pt-6
                                             ${colorClasses[task.color] || colorClasses.yellow}
-                                            text-gray-800 font-normal text-sm sm:text-base
+                                            text-ink font-hand text-lg leading-snug font-medium
                                             min-h-[80px] flex flex-col items-start justify-start
                                             transition-all duration-150
-                                            ${isSelected ? 'ring-2 ring-blue-500 scale-105 shadow-lg' : ''}
+                                            ${i % 2 === 0 ? '[transform:rotate(-0.8deg)]' : '[transform:rotate(0.8deg)]'}
+                                            ${isSelected ? 'ring-2 ring-ink scale-105 shadow-lg' : ''}
                                             ${isDisabled ? 'opacity-40 cursor-not-allowed' : mustSelectExactly3 ? 'cursor-pointer hover:shadow-lg' : 'cursor-default'}
                                         `}
                                     >
                                         {isSelected && (
-                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
-                                                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-ink rounded-full flex items-center justify-center shadow-md">
+                                                <svg className="w-3.5 h-3.5 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             </div>
@@ -134,8 +135,8 @@ export default function ActionPickerModal({ sprintId, tasks, onClose }: ActionPi
                         </div>
 
                         {mustSelectExactly3 && (
-                            <p className="text-xs text-gray-400 mb-4 text-center">
-                                {selectedIds.size}/3 selected
+                            <p className="font-hand text-lg text-ink/50 mb-4 text-center">
+                                {selectedIds.size} of 3 picked
                             </p>
                         )}
 
@@ -143,16 +144,16 @@ export default function ActionPickerModal({ sprintId, tasks, onClose }: ActionPi
                             <button
                                 onClick={onClose}
                                 disabled={isCompleting}
-                                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="flex-1 px-6 py-3 border border-ink/25 text-ink rounded-sm font-print text-[11px] font-bold uppercase tracking-[0.12em] hover:bg-ink/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirm}
                                 disabled={isCompleting || (mustSelectExactly3 && !canConfirm)}
-                                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="flex-1 px-6 py-3 bg-ink text-paper rounded-sm font-print text-[11px] font-bold uppercase tracking-[0.12em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
-                                {isCompleting ? 'Completing...' : 'Complete Sprint'}
+                                {isCompleting ? 'Completing…' : 'Complete sprint'}
                             </button>
                         </div>
                     </>

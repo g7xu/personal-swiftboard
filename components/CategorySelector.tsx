@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
+import { useRef, forwardRef, useImperativeHandle } from "react"
 
 export type Category = 'Not Sure' | 'Thorn' | 'Rose' | 'Seed' | 'Action'
 
@@ -13,21 +13,24 @@ interface CategorySelectorProps {
 
 const CATEGORIES: Category[] = ['Not Sure', 'Thorn', 'Rose', 'Seed', 'Action']
 
-// Color mapping - each category gets its own color
-const categoryColors: Record<Category, string> = {
-  'Not Sure': 'bg-gray-100 hover:bg-gray-200 border-gray-300',
-  'Thorn': 'bg-yellow-100 hover:bg-yellow-200 border-yellow-300',
-  'Rose': 'bg-pink-100 hover:bg-pink-200 border-pink-300',
-  'Seed': 'bg-green-100 hover:bg-green-200 border-green-300',
-  'Action': 'bg-blue-100 hover:bg-blue-200 border-blue-300',
-  }
+const categoryDots: Record<Category, string> = {
+  'Not Sure': 'bg-desk-deep',
+  'Thorn': 'bg-note-yellow',
+  'Rose': 'bg-note-pink',
+  'Seed': 'bg-note-green',
+  'Action': 'bg-note-blue',
+}
+
+const categoryLabels: Record<Category, string> = {
+  'Not Sure': 'Unsorted',
+  'Thorn': 'Thorn',
+  'Rose': 'Rose',
+  'Seed': 'Seed',
+  'Action': 'Action',
+}
 
 const CategorySelector = forwardRef<{ focus: () => void }, CategorySelectorProps>(
   ({ selectedCategory, onCategoryChange, onEnter, inputRef }, ref) => {
-    const [focusedIndex, setFocusedIndex] = useState(
-      CATEGORIES.indexOf(selectedCategory)
-    )
-
     const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
 
     // Expose focus method to parent component
@@ -39,11 +42,6 @@ const CategorySelector = forwardRef<{ focus: () => void }, CategorySelectorProps
       }
     }))
 
-    useEffect(() => {
-      const currentIndex = CATEGORIES.indexOf(selectedCategory)
-      setFocusedIndex(currentIndex)
-    }, [selectedCategory])
-
     // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -52,8 +50,7 @@ const CategorySelector = forwardRef<{ focus: () => void }, CategorySelectorProps
         // Find new index
         const dir = e.key === 'ArrowLeft' ? -1 : 1
         const newIndex = (currentIndex + dir + CATEGORIES.length) % CATEGORIES.length
-        
-        setFocusedIndex(newIndex)
+
         buttonRefs.current[newIndex]?.focus()
         onCategoryChange(CATEGORIES[newIndex])
 
@@ -86,19 +83,18 @@ const CategorySelector = forwardRef<{ focus: () => void }, CategorySelectorProps
             onClick={() => onCategoryChange(category)}
             onKeyDown={(e) => handleKeyDown(e, index)}
             className={`
-                px-4 py-2 rounded-[5px] border font-medium text-sm transition-all text-black
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                ${categoryColors[category]}
+                flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-print text-xs font-semibold text-ink transition-all cursor-pointer
                 ${
                   selectedCategory === category
-                    ? 'ring-2 ring-blue-500 ring-offset-2 scale-105 shadow-swiftboard'
-                    : 'shadow-sm'
+                    ? 'border-ink bg-paper shadow-sm'
+                    : 'border-ink/20 bg-paper/40 hover:border-ink/45'
                 }
             `}
-            aria-label={`Select category: ${category}`}
+            aria-label={`Select category: ${categoryLabels[category]}`}
             aria-pressed={selectedCategory === category}
           >
-            {category}
+            <span className={`w-2.5 h-2.5 rounded-full border border-ink/20 ${categoryDots[category]}`} />
+            {categoryLabels[category]}
           </button>
         ))}
       </div>

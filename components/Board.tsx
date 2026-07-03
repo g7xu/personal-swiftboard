@@ -170,23 +170,23 @@ export default function Board({ initialSprint, readOnly = false }: BoardProps) {
         <div className="flex flex-col h-full">
             {/* Analyze bar */}
             {!readOnly && (
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex flex-wrap items-center gap-3 mb-6">
                     <button
                         onClick={handleAnalyzeAll}
                         disabled={isAnalyzing}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-[5px] hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-paper text-ink border border-ink/20 font-print text-[11px] font-bold uppercase tracking-[0.12em] rounded-sm shadow-sm hover:border-ink/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         {isAnalyzing ? (
                             <>
-                                <Loader2 size={16} className="animate-spin" />
+                                <Loader2 size={14} className="animate-spin" />
                                 {analyzeProgress
-                                    ? `Analyzing ${analyzeProgress.current}/${analyzeProgress.total}...`
-                                    : 'Analyzing...'}
+                                    ? `Analyzing ${analyzeProgress.current}/${analyzeProgress.total}…`
+                                    : 'Analyzing…'}
                             </>
                         ) : (
                             <>
-                                <Sparkles size={16} />
-                                Analyze All
+                                <Sparkles size={14} />
+                                Analyze all
                             </>
                         )}
                     </button>
@@ -194,25 +194,25 @@ export default function Board({ initialSprint, readOnly = false }: BoardProps) {
                         <>
                             <button
                                 onClick={handleKeepAll}
-                                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-[5px] hover:bg-green-700 transition-colors cursor-pointer"
+                                className="px-4 py-2 bg-ink text-paper font-print text-[11px] font-bold uppercase tracking-[0.12em] rounded-sm hover:opacity-90 transition-opacity cursor-pointer"
                             >
-                                Keep All
+                                Keep all
                             </button>
                             <button
                                 onClick={handleRevertAll}
-                                className="px-4 py-2 bg-gray-400 text-white text-sm font-medium rounded-[5px] hover:bg-gray-500 transition-colors cursor-pointer"
+                                className="px-4 py-2 text-ink/70 border border-ink/20 font-print text-[11px] font-bold uppercase tracking-[0.12em] rounded-sm hover:bg-ink/5 transition-colors cursor-pointer"
                             >
-                                Revert All
+                                Revert all
                             </button>
-                            <span className="text-sm text-gray-500">
-                                {pendingAnalyses.size} pending
+                            <span className="font-hand text-xl text-ink/60">
+                                {pendingAnalyses.size} waiting for your review
                             </span>
                         </>
                     )}
                 </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 pb-4 h-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-4 h-full">
                 {COLUMNS.map((col) => (
                     <Column
                         key={col}

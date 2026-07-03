@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { createTask, deleteTask, updateTaskStatus } from '@/app/actions'
 import { Task, Sprint } from '@prisma/client'
-import CategorySelector, {Category} from './CategorySelector'
+import CategorySelector, { Category } from './CategorySelector'
 import StickyNote from './StickyNote'
 
 interface TaskInputSectionProps {
@@ -14,11 +14,9 @@ interface TaskInputSectionProps {
 export default function TaskInputSection({ initialSprint, readOnly = false }: TaskInputSectionProps) {
     const [newTaskContent, setNewTaskContent] = useState('')
     const [selectedCategory, setSelectedCategory] = useState<Category>('Not Sure')
-    const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
     const categorySelectorRef = useRef<{ focus: () => void }>(null)
-    const fabRef = useRef<HTMLButtonElement>(null)
-    const panelRef = useRef<HTMLDivElement>(null)
+    const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
 
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -47,99 +45,23 @@ export default function TaskInputSection({ initialSprint, readOnly = false }: Ta
         }
     }
 
-    const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
-
     const playgroundTasks = initialSprint.tasks.filter(t => t.status === 'Not Sure')
 
-    // Close panel on click outside
-    const handleClickOutside = useCallback((e: MouseEvent) => {
-        if (
-            panelRef.current && !panelRef.current.contains(e.target as Node) &&
-            fabRef.current && !fabRef.current.contains(e.target as Node)
-        ) {
-            setIsPlaygroundOpen(false)
-        }
-    }, [])
-
-    // Close panel on Escape
-    const handleEscape = useCallback((e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-            setIsPlaygroundOpen(false)
-        }
-    }, [])
-
-    useEffect(() => {
-        if (isPlaygroundOpen) {
-            document.addEventListener('mousedown', handleClickOutside)
-            document.addEventListener('keydown', handleEscape)
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside)
-                document.removeEventListener('keydown', handleEscape)
-            }
-        }
-    }, [isPlaygroundOpen, handleClickOutside, handleEscape])
-
-    if (readOnly) {
-        return (
-            <div className="relative w-full">
-                <div className="w-full max-w-2xl mx-auto text-center text-gray-400">
-                    This sprint is completed and read-only.
-                </div>
-            </div>
-        )
-    }
+    if (readOnly) return null
 
     return (
-        <div className="relative w-full">
-            {/* FAB - top right */}
-            {playgroundTasks.length > 0 && (
-                <button
-                    ref={fabRef}
-                    onClick={() => setIsPlaygroundOpen(!isPlaygroundOpen)}
-                    className="fixed top-6 right-6 w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center shadow-md text-gray-700 font-semibold text-sm z-50"
-                    title="Playground"
-                >
-                    {playgroundTasks.length}
-                </button>
-            )}
-
-            {/* Playground dropdown panel */}
-            {isPlaygroundOpen && playgroundTasks.length > 0 && (
-                <div
-                    ref={panelRef}
-                    className="fixed top-20 right-6 w-[500px] bg-[#f8f7f6] rounded-[5px] border border-gray-200 shadow-lg z-50 max-h-[70vh] overflow-y-auto"
-                >
-                    <div className="p-4">
-                        <h3 className="text-[16px] font-bold text-gray-800 mb-3">Playground</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {playgroundTasks.map((task, index) => (
-                                <StickyNote
-                                    key={task.id}
-                                    task={task}
-                                    index={index}
-                                    onDragStart={(taskId) => setDraggedTaskId(taskId)}
-                                    onDragEnd={() => setDraggedTaskId(null)}
-                                    isDragging={draggedTaskId === task.id}
-                                    onDelete={(taskId) => deleteTask(taskId)}
-                                    onAssign={(taskId, status) => updateTaskStatus(taskId, status)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Form - full width, centered */}
-            <div className="w-full max-w-2xl mx-auto">
-                <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
+        <>
+            {/* Capture bar — a fresh pad of paper */}
+            <div className="w-full bg-paper/85 rounded-md p-4 shadow-[0_2px_10px_-4px_rgba(46,43,35,0.35)]">
+                <form onSubmit={handleCreateTask} className="flex flex-col lg:flex-row lg:items-center gap-4">
                     <input
                         ref={inputRef}
                         type="text"
                         value={newTaskContent}
                         onChange={(e) => setNewTaskContent(e.target.value)}
                         onKeyDown={handleInputKeyDown}
-                        placeholder="Add a new sticky note..."
-                        className="w-full px-4 py-2 rounded-[5px] border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 bg-white"
+                        placeholder="Jot something down…"
+                        className="flex-1 min-w-0 bg-transparent font-hand text-2xl text-ink placeholder:text-ink/35 border-b-2 border-ink/15 focus:border-ink/60 outline-none px-1 py-1 transition-colors"
                     />
 
                     <CategorySelector
@@ -152,12 +74,40 @@ export default function TaskInputSection({ initialSprint, readOnly = false }: Ta
 
                     <button
                         type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-[5px] font-medium shadow-swiftboard hover:bg-blue-700 transition-colors"
+                        className="px-5 py-2 bg-ink text-paper font-print text-[11px] font-bold uppercase tracking-[0.12em] rounded-sm hover:opacity-90 transition-opacity cursor-pointer"
                     >
-                        Add Task
+                        Pin it
                     </button>
                 </form>
             </div>
-        </div>
+
+            {/* Unsorted pile — a visible shelf at the bottom of the desk */}
+            {playgroundTasks.length > 0 && (
+                <div className="fixed bottom-0 inset-x-0 z-40">
+                    <div className="bg-desk-deep/90 backdrop-blur-sm border-t border-ink/15 shadow-[0_-6px_18px_-8px_rgba(46,43,35,0.4)]">
+                        <div className="max-w-[1500px] w-[95%] mx-auto pt-3 pb-1">
+                            <p className="font-print text-[10px] font-bold uppercase tracking-[0.16em] text-ink/60 mb-2">
+                                Unsorted pile · {playgroundTasks.length} — click a note to sort it
+                            </p>
+                            <div className="flex gap-4 overflow-x-auto pb-2 items-start">
+                                {playgroundTasks.map((task, index) => (
+                                    <div key={task.id} className="w-56 shrink-0">
+                                        <StickyNote
+                                            task={task}
+                                            index={index}
+                                            onDragStart={(taskId) => setDraggedTaskId(taskId)}
+                                            onDragEnd={() => setDraggedTaskId(null)}
+                                            isDragging={draggedTaskId === task.id}
+                                            onDelete={(taskId) => deleteTask(taskId)}
+                                            onAssign={(taskId, status) => updateTaskStatus(taskId, status)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     )
 }

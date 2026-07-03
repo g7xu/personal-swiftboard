@@ -15,22 +15,15 @@ interface SprintListItemProps {
     }
 }
 
+const edgeColor: Record<string, string> = {
+    ACTIVE: 'border-l-note-green',
+    COMPLETED: 'border-l-ink/25',
+    MISSING: 'border-l-note-yellow',
+}
+
 export default function SprintListItem({ sprint }: SprintListItemProps) {
     const [isEditingTheme, setIsEditingTheme] = useState(false)
     const [themeValue, setThemeValue] = useState(sprint.theme ?? '')
-
-    const badgeClass =
-        sprint.status === 'ACTIVE'
-            ? 'bg-green-100 text-green-700'
-            : sprint.status === 'MISSING'
-            ? 'bg-amber-100 text-amber-700'
-            : 'bg-gray-100 text-gray-500'
-    const badgeLabel =
-        sprint.status === 'ACTIVE'
-            ? 'Active'
-            : sprint.status === 'MISSING'
-            ? 'Missing'
-            : 'Completed'
 
     const handleSaveTheme = async () => {
         setIsEditingTheme(false)
@@ -48,15 +41,17 @@ export default function SprintListItem({ sprint }: SprintListItemProps) {
     return (
         <Link
             href={`/?sprintId=${sprint.id}`}
-            className={`block p-4 rounded-lg border border-gray-200 transition-all ${
+            className={`block p-4 bg-paper rounded-sm border-l-4 shadow-[0_1px_4px_rgba(46,43,35,0.18)] transition-all ${
+                edgeColor[sprint.status] ?? 'border-l-ink/25'
+            } ${
                 sprint.status === 'MISSING'
                     ? 'opacity-60 cursor-default'
-                    : 'hover:border-gray-300 hover:shadow-sm'
+                    : 'hover:shadow-[0_3px_10px_rgba(46,43,35,0.25)] hover:-translate-y-0.5'
             }`}
         >
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="font-medium text-gray-900">
+            <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                    <p className="font-semibold text-ink">
                         {getSprintWeekLabel(new Date(sprint.weekStart))}
                     </p>
                     {isEditingTheme ? (
@@ -68,8 +63,8 @@ export default function SprintListItem({ sprint }: SprintListItemProps) {
                             onKeyDown={handleKeyDown}
                             onClick={(e) => e.preventDefault()}
                             autoFocus
-                            placeholder="Add a theme..."
-                            className="block text-sm text-gray-500 mt-0.5 w-full bg-transparent border-b border-gray-300 outline-none focus:border-gray-500"
+                            placeholder="Name this week…"
+                            className="block font-hand text-lg text-ink mt-0.5 w-full bg-transparent border-b border-ink/30 outline-none focus:border-ink/60"
                         />
                     ) : (
                         <p
@@ -77,21 +72,19 @@ export default function SprintListItem({ sprint }: SprintListItemProps) {
                                 e.preventDefault()
                                 setIsEditingTheme(true)
                             }}
-                            className="text-sm text-gray-400 mt-0.5 cursor-text hover:text-gray-600"
+                            className="font-hand text-lg text-ink/55 mt-0.5 cursor-text hover:text-ink/80 truncate"
                         >
-                            {sprint.theme || 'Add a theme...'}
+                            {sprint.theme || 'Name this week…'}
                         </p>
                     )}
                 </div>
-                <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-400">
-                        {sprint._count.tasks} task{sprint._count.tasks !== 1 ? 's' : ''}
+                <div className="flex items-center gap-4 shrink-0">
+                    <span className="font-print text-[10px] font-bold uppercase tracking-[0.12em] text-ink/50">
+                        {sprint._count.tasks} note{sprint._count.tasks !== 1 ? 's' : ''}
                     </span>
-                    <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${badgeClass}`}
-                    >
-                        {badgeLabel}
-                    </span>
+                    {sprint.status === 'ACTIVE' && <span className="stamp stamp-ink">This week</span>}
+                    {sprint.status === 'COMPLETED' && <span className="stamp">Completed</span>}
+                    {sprint.status === 'MISSING' && <span className="stamp stamp-muted">Missing</span>}
                 </div>
             </div>
         </Link>

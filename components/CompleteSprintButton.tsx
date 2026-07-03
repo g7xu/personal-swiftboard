@@ -17,9 +17,9 @@ export default function CompleteSprintButton({ sprintId, tasks }: CompleteSprint
             <button
                 type="button"
                 onClick={() => setShowModal(true)}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="px-4 py-2 bg-ink text-paper font-print text-[11px] font-bold uppercase tracking-[0.12em] rounded-sm hover:opacity-90 transition-opacity cursor-pointer"
             >
-                Complete Sprint
+                Complete sprint
             </button>
 
             {showModal && (
