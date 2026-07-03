@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useState, useEffect, useCallback, type RefCallback } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { updateTaskContent } from '@/app/actions'
 import { Pencil, Trash2, Sparkles, Loader2, Check, Undo2 } from 'lucide-react'
 
@@ -31,10 +31,33 @@ interface StickyNoteProps {
 }
 
 const colorClasses: Record<string, string> = {
-    yellow: 'bg-yellow-100 hover:bg-yellow-50',
-    blue: 'bg-blue-100 hover:bg-blue-50',
-    pink: 'bg-pink-100 hover:bg-pink-50',
-    green: 'bg-green-100 hover:bg-green-50',
+    yellow: 'bg-note-yellow',
+    blue: 'bg-note-blue',
+    pink: 'bg-note-pink',
+    green: 'bg-note-green',
+}
+
+// Deterministic tilt per note, like paper stuck by hand (±1.6°)
+function tiltFor(id: string): string {
+    let h = 0
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
+    const angle = ((Math.abs(h) % 100) / 100) * 3.2 - 1.6
+    return `${angle.toFixed(2)}deg`
+}
+
+// Bold the "Field:" prefixes the AI analysis produces, keep everything handwritten
+function renderContent(text: string) {
+    return text.split('\n').map((line, i) => {
+        const m = line.match(/^([A-Za-z][A-Za-z ]{0,24}):\s?(.*)$/)
+        if (m) {
+            return (
+                <div key={i}>
+                    <span className="font-bold">{m[1]}:</span> {m[2]}
+                </div>
+            )
+        }
+        return <div key={i}>{line || ' '}</div>
+    })
 }
 
 function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
@@ -62,10 +85,10 @@ function createDragImage(element: HTMLElement, dragEvent: React.DragEvent) {
 }
 
 const assignButtons = [
-    { status: 'Thorn', label: 'Thorn', color: 'bg-yellow-200 hover:bg-yellow-300' },
-    { status: 'Rose', label: 'Rose', color: 'bg-pink-200 hover:bg-pink-300' },
-    { status: 'Seed', label: 'Seed', color: 'bg-green-200 hover:bg-green-300' },
-    { status: 'Action', label: 'Action', color: 'bg-blue-200 hover:bg-blue-300' },
+    { status: 'Thorn', label: 'Thorn', color: 'bg-note-yellow' },
+    { status: 'Rose', label: 'Rose', color: 'bg-note-pink' },
+    { status: 'Seed', label: 'Seed', color: 'bg-note-green' },
+    { status: 'Action', label: 'Action', color: 'bg-note-blue' },
 ]
 
 export default function StickyNote({ task, index, onDragStart, onDragEnd, isDragging, onDelete, onAssign, readOnly = false, pendingAnalysis, isAnalyzing, onAnalyze, onKeep, onRevert }: StickyNoteProps) {
@@ -157,16 +180,36 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
             onDragStart={readOnly ? undefined : handleDragStart}
             onDragEnd={readOnly ? undefined : handleDragEnd}
             onClick={readOnly ? undefined : handleClick}
+            style={{ '--tilt': tiltFor(task.id) } as React.CSSProperties}
             className={`
-                group relative
-                p-2 mb-4 rounded-[5px] shadow-swiftboard ${readOnly ? 'cursor-default' : 'cursor-move'}
+                group relative note note-enter
+                p-3 pt-7 mb-5
+                ${readOnly ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}
                 ${colorClasses[task.color] || colorClasses.yellow}
-                ${isDragging ? 'opacity-50' : 'hover:shadow-lg transition-shadow'}
-                ${pendingAnalysis ? 'ring-2 ring-purple-400 ring-offset-1' : ''}
-                text-gray-800 font-normal text-sm sm:text-base
-                min-h-[80px] flex flex-col items-start justify-start text-left
+                [transform:rotate(var(--tilt))] transition-[transform,box-shadow] duration-150
+                ${isDragging
+                    ? 'opacity-40'
+                    : readOnly
+                    ? ''
+                    : 'hover:[transform:rotate(0deg)_translateY(-3px)] hover:shadow-xl'}
+                ${pendingAnalysis ? 'ring-2 ring-ink/70 ring-offset-2 ring-offset-desk' : ''}
+                text-ink min-h-[96px] flex flex-col items-start justify-start text-left
             `}
         >
+            {/* Carried-over actions are marked like a re-pinned note */}
+            {task.isCarriedAction && (
+                <span className="absolute top-1.5 left-2.5 font-print text-[9px] font-bold uppercase tracking-[0.14em] text-ink/45">
+                    Carried over
+                </span>
+            )}
+
+            {/* AI suggestion flag */}
+            {pendingAnalysis && (
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-paper px-2 py-0.5 font-print text-[9px] font-bold uppercase tracking-[0.14em] text-ink/70 shadow-sm [transform:translateX(-50%)_rotate(-2deg)]">
+                    AI draft
+                </span>
+            )}
+
             {/* Edit/Delete/Analyze icons - visible on hover, hidden for carried actions */}
             {!isEditing && !readOnly && !task.isCarriedAction && !pendingAnalysis && (
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -178,13 +221,13 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                                 onAnalyze(task.id)
                             }}
                             disabled={isAnalyzing}
-                            className="p-1 rounded hover:bg-black/10 transition-colors"
+                            className="p-1 rounded hover:bg-ink/10 transition-colors cursor-pointer"
                             title="Analyze"
                         >
                             {isAnalyzing ? (
-                                <Loader2 size={14} className="text-purple-600 animate-spin" />
+                                <Loader2 size={14} className="text-ink animate-spin" />
                             ) : (
-                                <Sparkles size={14} className="text-purple-600" />
+                                <Sparkles size={14} className="text-ink/80" />
                             )}
                         </button>
                     )}
@@ -195,10 +238,10 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                             setIsEditing(true)
                             setDraftContent(task.content)
                         }}
-                        className="p-1 rounded hover:bg-black/10 transition-colors"
+                        className="p-1 rounded hover:bg-ink/10 transition-colors cursor-pointer"
                         title="Edit"
                     >
-                        <Pencil size={14} className="text-gray-600" />
+                        <Pencil size={14} className="text-ink/70" />
                     </button>
                     {onDelete && (
                         <button
@@ -206,10 +249,10 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                                 e.stopPropagation()
                                 onDelete(task.id)
                             }}
-                            className="p-1 rounded hover:bg-black/10 transition-colors"
+                            className="p-1 rounded hover:bg-ink/10 transition-colors cursor-pointer"
                             title="Delete"
                         >
-                            <Trash2 size={14} className="text-gray-600" />
+                            <Trash2 size={14} className="text-ink/70" />
                         </button>
                     )}
                 </div>
@@ -240,23 +283,23 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                         }
                     }}
                     autoFocus
-                    className="w-full resize-none bg-transparent border-none outline-none text-gray-800 font-normal text-sm sm:text-base"
+                    className="w-full resize-none bg-transparent border-none outline-none text-ink font-hand text-xl leading-snug font-medium"
                 />
             ) : (
-                <div className='w-full h-full whitespace-pre-wrap'>
-                    {displayContent}
+                <div className="w-full h-full font-hand text-xl leading-snug font-medium">
+                    {renderContent(displayContent)}
                 </div>
             )}
 
             {/* Keep / Revert buttons for pending analysis */}
             {pendingAnalysis && onKeep && onRevert && (
-                <div className="flex gap-2 mt-2 w-full">
+                <div className="flex gap-2 mt-3 w-full">
                     <button
                         onClick={(e) => {
                             e.stopPropagation()
                             onKeep(task.id)
                         }}
-                        className="flex items-center gap-1 flex-1 justify-center px-2 py-1 text-xs font-medium rounded bg-green-200 hover:bg-green-300 text-gray-700 transition-colors"
+                        className="flex items-center gap-1 flex-1 justify-center px-2 py-1 font-print text-[10px] font-bold uppercase tracking-[0.1em] rounded-sm bg-ink text-paper hover:opacity-90 transition-opacity cursor-pointer"
                     >
                         <Check size={12} />
                         Keep
@@ -266,7 +309,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                             e.stopPropagation()
                             onRevert(task.id)
                         }}
-                        className="flex items-center gap-1 flex-1 justify-center px-2 py-1 text-xs font-medium rounded bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
+                        className="flex items-center gap-1 flex-1 justify-center px-2 py-1 font-print text-[10px] font-bold uppercase tracking-[0.1em] rounded-sm bg-paper/70 text-ink hover:bg-paper transition-colors cursor-pointer"
                     >
                         <Undo2 size={12} />
                         Revert
@@ -275,7 +318,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
             )}
 
             {showAssignButtons && onAssign && (
-                <div className="flex gap-1 mt-2 w-full flex-wrap">
+                <div className="flex gap-1.5 mt-3 w-full flex-wrap">
                     {assignButtons.map(({ status, label, color }) => (
                         <button
                             key={status}
@@ -283,7 +326,7 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                                 e.stopPropagation()
                                 onAssign(task.id, status)
                             }}
-                            className={`flex-1 min-w-0 px-1 py-1 text-xs font-medium rounded ${color} text-gray-700 transition-colors`}
+                            className={`flex-1 min-w-0 px-1 py-1 font-print text-[10px] font-bold uppercase tracking-[0.08em] rounded-sm border border-ink/15 ${color} text-ink hover:brightness-95 transition-[filter] cursor-pointer`}
                         >
                             {label}
                         </button>

@@ -29,9 +29,9 @@ function getMondayOfWeek(date: Date): string {
 
 function getStatusColor(status: string): string {
     switch (status) {
-        case 'ACTIVE': return 'bg-green-100 hover:bg-green-200'
-        case 'COMPLETED': return 'bg-gray-100 hover:bg-gray-200'
-        case 'MISSING': return 'bg-amber-50 hover:bg-amber-100'
+        case 'ACTIVE': return 'bg-note-green/60 hover:bg-note-green'
+        case 'COMPLETED': return 'bg-ink/10 hover:bg-ink/15'
+        case 'MISSING': return 'bg-note-yellow/40 hover:bg-note-yellow/60'
         default: return ''
     }
 }
@@ -122,23 +122,25 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
     return (
         <div>
             {/* Calendar */}
-            <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+            <div className="mb-6 p-5 bg-paper rounded-md shadow-[0_2px_10px_-4px_rgba(46,43,35,0.35)]">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
                     <button
                         onClick={prevMonth}
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1 text-ink/40 hover:text-ink transition-colors cursor-pointer"
+                        aria-label="Previous month"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="font-print text-xs font-bold uppercase tracking-[0.16em] text-ink">
                         {MONTHS[viewMonth]} {viewYear}
                     </span>
                     <button
                         onClick={nextMonth}
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1 text-ink/40 hover:text-ink transition-colors cursor-pointer"
+                        aria-label="Next month"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -149,7 +151,7 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
                 {/* Day headers */}
                 <div className="grid grid-cols-7 mb-1">
                     {DAYS.map(day => (
-                        <div key={day} className="text-center text-xs text-gray-400 py-1">
+                        <div key={day} className="text-center font-print text-[10px] font-bold uppercase tracking-[0.1em] text-ink/40 py-1">
                             {day}
                         </div>
                     ))}
@@ -172,11 +174,11 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
                                 <div
                                     key={di}
                                     className={`text-center text-sm py-1.5 flex items-center justify-center ${
-                                        day === null ? 'text-transparent' : 'text-gray-600'
+                                        day === null ? 'text-transparent' : 'text-ink/70'
                                     }`}
                                 >
                                     {isToday ? (
-                                        <span className="w-7 h-7 rounded-full bg-gray-800 text-white flex items-center justify-center">
+                                        <span className="w-7 h-7 rounded-full bg-ink text-paper flex items-center justify-center">
                                             {day}
                                         </span>
                                     ) : (
@@ -192,7 +194,7 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
 
             {/* Sprint list filtered by selected month */}
             {filteredSprints.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">No sprints this month.</p>
+                <p className="font-hand text-xl text-ink/45 text-center py-8">No sprints this month.</p>
             ) : (
                 <div className="flex flex-col gap-3">
                     {filteredSprints.map((sprint) => (

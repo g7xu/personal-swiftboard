@@ -25,33 +25,34 @@ export default function CompleteSprintBanner({ staleSprint }: CompleteSprintBann
     const taskCount = staleSprint.tasks.length
 
     return (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 max-w-md w-full mx-4 text-center">
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
-                    Complete Previous Sprint
+        <div className="fixed inset-0 bg-ink/35 backdrop-blur-[2px] z-50 flex items-center justify-center">
+            <div className="bg-paper rounded-md shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+                <span className="stamp stamp-muted mb-4">Unfinished</span>
+                <h2 className="font-print text-sm font-bold uppercase tracking-[0.16em] text-ink mt-3 mb-2">
+                    Last week is still open
                 </h2>
-                <p className="text-gray-500 mb-4">
-                    You have an unfinished sprint that needs to be completed before you can continue.
+                <p className="text-ink/60 mb-5 font-hand text-xl leading-snug">
+                    Close it out before starting this week&apos;s board.
                 </p>
-                <div className="bg-gray-50 rounded-md p-4 mb-6 text-left">
-                    <p className="text-sm text-gray-600">
-                        <span className="font-medium">Sprint:</span>{' '}
+                <div className="bg-desk/50 rounded-sm p-4 mb-6 text-left">
+                    <p className="text-sm text-ink/80">
+                        <span className="font-semibold">Sprint:</span>{' '}
                         {getSprintWeekLabel(new Date(staleSprint.weekStart))}
                     </p>
                     {staleSprint.theme && (
-                        <p className="text-sm text-gray-600 mt-1">
-                            <span className="font-medium">Theme:</span> {staleSprint.theme}
+                        <p className="text-sm text-ink/80 mt-1">
+                            <span className="font-semibold">Theme:</span> {staleSprint.theme}
                         </p>
                     )}
-                    <p className="text-sm text-gray-600 mt-1">
-                        <span className="font-medium">Tasks:</span> {taskCount}
+                    <p className="text-sm text-ink/80 mt-1">
+                        <span className="font-semibold">Notes:</span> {taskCount}
                     </p>
                 </div>
                 <button
                     onClick={() => setShowPicker(true)}
-                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                    className="w-full px-6 py-3 bg-ink text-paper rounded-sm font-print text-[11px] font-bold uppercase tracking-[0.12em] hover:opacity-90 transition-opacity cursor-pointer"
                 >
-                    Complete & Archive
+                    Complete &amp; archive
                 </button>
             </div>
         </div>
