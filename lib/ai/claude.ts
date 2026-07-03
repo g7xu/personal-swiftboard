@@ -1,14 +1,16 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { AIProvider } from './provider'
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+let client: Anthropic | null = null
 
-const claudeProvider: AIProvider = {
+export const claudeProvider: AIProvider = {
   async analyze(content: string, systemPrompt: string): Promise<string> {
+    client ??= new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    })
+
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-haiku-4-5',
       max_tokens: 500,
       system: systemPrompt,
       messages: [{ role: 'user', content }],
@@ -17,8 +19,4 @@ const claudeProvider: AIProvider = {
     const textBlock = response.content.find((block) => block.type === 'text')
     return textBlock?.text ?? ''
   },
-}
-
-export function getProvider(): AIProvider {
-  return claudeProvider
 }
