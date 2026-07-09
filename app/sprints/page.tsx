@@ -4,6 +4,7 @@ import { getAllSprints, getActiveSprintCarriedActions } from '@/app/actions'
 import Link from 'next/link'
 import SprintActionsPanel from '@/components/SprintActionsPanel'
 import SprintCalendar from '@/components/SprintCalendar'
+import SiteHeader, { headerLinkClass } from '@/components/SiteHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,25 +19,17 @@ export default async function SprintsPage() {
 
     return (
         <main className="min-h-screen text-ink">
-            <div className="max-w-6xl mx-auto px-4 py-10">
-                <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-                    <div>
-                        <p className="font-bold uppercase tracking-[0.22em] text-[13px]">
-                            Personal Swiftboard
-                        </p>
-                        <h1 className="font-hand text-3xl mt-1 leading-none text-ink/90">
-                            The weeks so far
-                        </h1>
-                    </div>
-                    <Link
-                        href="/"
-                        className="font-semibold uppercase tracking-[0.12em] text-[11px] text-ink/60 hover:text-ink transition-colors"
-                    >
-                        ← Back to board
-                    </Link>
-                </div>
+            <div className="max-w-[1500px] w-[95%] mx-auto pb-10">
+                <SiteHeader
+                    title="The weeks so far"
+                    nav={
+                        <Link href="/" className={headerLinkClass}>
+                            ← Back to board
+                        </Link>
+                    }
+                />
 
-                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 pt-8">
                     {/* Calendar + filtered sprint list - left panel */}
                     <div className="flex-[3]">
                         <SprintCalendar sprints={sprints} />

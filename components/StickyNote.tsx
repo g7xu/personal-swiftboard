@@ -283,10 +283,10 @@ export default function StickyNote({ task, index, onDragStart, onDragEnd, isDrag
                         }
                     }}
                     autoFocus
-                    className="w-full resize-none bg-transparent border-none outline-none text-ink font-hand text-xl leading-snug font-medium"
+                    className="w-full resize-none bg-transparent border-none outline-none text-ink font-hand text-xl leading-snug"
                 />
             ) : (
-                <div className="w-full h-full font-hand text-xl leading-snug font-medium">
+                <div className="w-full h-full font-hand text-xl leading-snug">
                     {renderContent(displayContent)}
                 </div>
             )}

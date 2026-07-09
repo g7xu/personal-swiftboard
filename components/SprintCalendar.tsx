@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import SprintListItem from './SprintListItem'
+import { getMondayOfWeek } from '@/lib/week'
 
 interface SprintInfo {
     id: string
@@ -19,12 +20,8 @@ interface SprintCalendarProps {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
-function getMondayOfWeek(date: Date): string {
-    const d = new Date(date)
-    const day = d.getUTCDay()
-    const diff = day === 0 ? -6 : 1 - day
-    const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff))
-    return monday.toISOString().slice(0, 10)
+function getMondayKey(date: Date): string {
+    return getMondayOfWeek(date).toISOString().slice(0, 10)
 }
 
 function getStatusColor(status: string): string {
@@ -45,7 +42,7 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
         const map = new Map<string, SprintInfo>()
         for (const s of sprints) {
             const d = new Date(s.weekStart)
-            const key = getMondayOfWeek(d)
+            const key = getMondayKey(d)
             map.set(key, s)
         }
         return map
@@ -105,7 +102,7 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
         const firstDayInWeek = week.find(d => d !== null)
         if (firstDayInWeek !== undefined && firstDayInWeek !== null) {
             const date = new Date(Date.UTC(viewYear, viewMonth, firstDayInWeek))
-            const key = getMondayOfWeek(date)
+            const key = getMondayKey(date)
             return sprintByMonday.get(key)
         }
         return undefined
@@ -166,7 +163,7 @@ export default function SprintCalendar({ sprints }: SprintCalendarProps) {
                         <div
                             key={wi}
                             className={`grid grid-cols-7 transition-colors ${rowClass}`}
-                            onClick={sprint ? () => router.push(`/?sprintId=${sprint.id}`) : undefined}
+                            onClick={sprint ? () => router.push(`/sprints/${sprint.id}`) : undefined}
                         >
                             {week.map((day, di) => {
                                 const isToday = day !== null && viewYear === today.getFullYear() && viewMonth === today.getMonth() && day === today.getDate()

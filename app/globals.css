@@ -23,7 +23,7 @@
   --color-note-green: var(--note-green);
   --color-note-blue: var(--note-blue);
   --font-print: var(--font-archivo), system-ui, sans-serif;
-  --font-hand: var(--font-caveat), "Segoe Script", cursive;
+  --font-hand: var(--font-hand-src), "Segoe Script", cursive;
 }
 
 body {
@@ -37,6 +37,7 @@ body {
 .note {
   position: relative;
   border-radius: 2px;
+  overflow-wrap: break-word;
   box-shadow:
     0 1px 2px rgba(46, 43, 35, 0.22),
     0 10px 18px -10px rgba(46, 43, 35, 0.4);

@@ -136,7 +136,7 @@ export default function Column({ id, title, tasks, onDragStart, onDragEnd, onDro
                                     }
                                 }}
                                 placeholder="Write it down…"
-                                className="w-full resize-none border-none outline-none font-hand text-xl leading-snug font-medium text-ink placeholder:text-ink/35 bg-transparent"
+                                className="w-full resize-none border-none outline-none font-hand text-xl leading-snug text-ink placeholder:text-ink/35 bg-transparent"
                                 rows={3}
                             />
                             <div className="flex gap-2 mt-2">

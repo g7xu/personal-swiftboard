@@ -16,3 +16,8 @@ export function getSprintWeekLabel(weekStart: Date): string {
 
     return `Week ${weekNumber} \u00b7 ${MONTHS[month]} ${year}`
 }
+
+export function getSprintTitle(sprint: { weekStart: Date; theme: string | null }): string {
+    const label = getSprintWeekLabel(new Date(sprint.weekStart))
+    return sprint.theme ? `${label} \u2014 ${sprint.theme}` : label
+}

@@ -40,7 +40,7 @@ export default function SprintListItem({ sprint }: SprintListItemProps) {
 
     return (
         <Link
-            href={`/?sprintId=${sprint.id}`}
+            href={`/sprints/${sprint.id}`}
             className={`block p-4 bg-paper rounded-sm border-l-4 shadow-[0_1px_4px_rgba(46,43,35,0.18)] transition-all ${
                 edgeColor[sprint.status] ?? 'border-l-ink/25'
             } ${

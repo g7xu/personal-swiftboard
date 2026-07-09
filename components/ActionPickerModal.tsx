@@ -113,7 +113,7 @@ export default function ActionPickerModal({ sprintId, tasks, onClose }: ActionPi
                                         className={`
                                             relative text-left note p-3 pt-6
                                             ${colorClasses[task.color] || colorClasses.yellow}
-                                            text-ink font-hand text-lg leading-snug font-medium
+                                            text-ink font-hand text-lg leading-snug
                                             min-h-[80px] flex flex-col items-start justify-start
                                             transition-all duration-150
                                             ${i % 2 === 0 ? '[transform:rotate(-0.8deg)]' : '[transform:rotate(0.8deg)]'}
