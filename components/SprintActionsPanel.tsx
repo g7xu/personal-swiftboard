@@ -58,7 +58,7 @@ export default function SprintActionsPanel({ carriedActions }: SprintActionsPane
                                 className={`
                                     relative text-left note p-3 pt-6
                                     ${colorClasses[action.color] || colorClasses.yellow}
-                                    text-ink font-hand text-lg leading-snug font-medium
+                                    text-ink font-hand text-lg leading-snug
                                     min-h-[60px] flex flex-col items-start justify-start
                                     transition-all duration-150 cursor-pointer
                                     ${i % 2 === 0 ? '[transform:rotate(-0.7deg)]' : '[transform:rotate(0.7deg)]'}
