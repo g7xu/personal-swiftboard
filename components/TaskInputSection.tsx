@@ -51,6 +51,30 @@ export default function TaskInputSection({ initialSprint, readOnly = false }: Ta
 
     return (
         <>
+            {/* Unsorted pile — same pad of paper, stacked above the capture bar */}
+            {playgroundTasks.length > 0 && (
+                <div className="w-full bg-paper/85 rounded-md p-4 mb-4 shadow-[0_2px_10px_-4px_rgba(46,43,35,0.35)]">
+                    <p className="font-print text-[10px] font-bold uppercase tracking-[0.16em] text-ink/60 mb-2">
+                        Unsorted pile · {playgroundTasks.length} — click a note to sort it
+                    </p>
+                    <div className="flex gap-4 overflow-x-auto pb-2 items-start">
+                        {playgroundTasks.map((task, index) => (
+                            <div key={task.id} className="w-56 shrink-0">
+                                <StickyNote
+                                    task={task}
+                                    index={index}
+                                    onDragStart={(taskId) => setDraggedTaskId(taskId)}
+                                    onDragEnd={() => setDraggedTaskId(null)}
+                                    isDragging={draggedTaskId === task.id}
+                                    onDelete={(taskId) => deleteTask(taskId)}
+                                    onAssign={(taskId, status) => updateTaskStatus(taskId, status)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Capture bar — a fresh pad of paper */}
             <div className="w-full bg-paper/85 rounded-md p-4 shadow-[0_2px_10px_-4px_rgba(46,43,35,0.35)]">
                 <form onSubmit={handleCreateTask} className="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -81,33 +105,6 @@ export default function TaskInputSection({ initialSprint, readOnly = false }: Ta
                 </form>
             </div>
 
-            {/* Unsorted pile — a visible shelf at the bottom of the desk */}
-            {playgroundTasks.length > 0 && (
-                <div className="fixed bottom-0 inset-x-0 z-40">
-                    <div className="bg-desk-deep/90 backdrop-blur-sm border-t border-ink/15 shadow-[0_-6px_18px_-8px_rgba(46,43,35,0.4)]">
-                        <div className="max-w-[1500px] w-[95%] mx-auto pt-3 pb-1">
-                            <p className="font-print text-[10px] font-bold uppercase tracking-[0.16em] text-ink/60 mb-2">
-                                Unsorted pile · {playgroundTasks.length} — click a note to sort it
-                            </p>
-                            <div className="flex gap-4 overflow-x-auto pb-2 items-start">
-                                {playgroundTasks.map((task, index) => (
-                                    <div key={task.id} className="w-56 shrink-0">
-                                        <StickyNote
-                                            task={task}
-                                            index={index}
-                                            onDragStart={(taskId) => setDraggedTaskId(taskId)}
-                                            onDragEnd={() => setDraggedTaskId(null)}
-                                            isDragging={draggedTaskId === task.id}
-                                            onDelete={(taskId) => deleteTask(taskId)}
-                                            onAssign={(taskId, status) => updateTaskStatus(taskId, status)}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     )
 }
