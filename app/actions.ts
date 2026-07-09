@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import { revalidatePath } from 'next/cache'
 import { getProvider } from '@/lib/ai'
 import { getAnalysisPrompt } from '@/lib/prompts'
+import { getCurrentWeekMonday, getMondayOfWeek } from '@/lib/week'
 
 const AI_ALLOWED_EMAILS = [
     'guoxuan.xu8@gmail.com',
@@ -101,13 +102,6 @@ export async function getCurrentSprint() {
     }
 
     return sprint
-}
-
-function getMondayOfWeek(date: Date): Date {
-    const d = new Date(date)
-    const dayOfWeek = d.getUTCDay()
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + mondayOffset))
 }
 
 async function verifyTaskOwnership(taskId: string, userId: string) {
@@ -473,13 +467,6 @@ export async function getActiveSprintCarriedActions() {
         },
         orderBy: { id: 'asc' },
     })
-}
-
-function getCurrentWeekMonday() {
-    const now = new Date()
-    const dayOfWeek = now.getUTCDay()
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + mondayOffset))
 }
 
 export async function hasCompletedSprintThisWeek() {
