@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { Archivo, Caveat } from "next/font/google";
+import { Archivo, Patrick_Hand } from "next/font/google";
 import "./globals.css";
 
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
-const caveat = Caveat({ subsets: ["latin"], variable: "--font-caveat" });
+const patrickHand = Patrick_Hand({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-hand-src",
+});
 
 export const metadata: Metadata = {
   title: "Personal Swiftboard",
@@ -17,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${archivo.variable} ${caveat.variable} antialiased`}>
+      <body className={`${archivo.variable} ${patrickHand.variable} antialiased`}>
         {children}
       </body>
     </html>
